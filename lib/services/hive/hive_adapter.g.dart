@@ -17,6 +17,9 @@ class LinkItemAdapter extends TypeAdapter<LinkItem> {
       for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
     };
     return LinkItem(
+      metaDescription: fields[9] == null ? "link..." : fields[9] as String?,
+      metaTitle: fields[10] as String?,
+      metaImage: fields[11] as String?,
       url: fields[5] as String,
       description: fields[1] as String?,
       category: fields[2] as String?,
@@ -31,7 +34,7 @@ class LinkItemAdapter extends TypeAdapter<LinkItem> {
   @override
   void write(BinaryWriter writer, LinkItem obj) {
     writer
-      ..writeByte(8)
+      ..writeByte(11)
       ..writeByte(1)
       ..write(obj.description)
       ..writeByte(2)
@@ -47,7 +50,13 @@ class LinkItemAdapter extends TypeAdapter<LinkItem> {
       ..writeByte(7)
       ..write(obj.status)
       ..writeByte(8)
-      ..write(obj.isFavourite);
+      ..write(obj.isFavourite)
+      ..writeByte(9)
+      ..write(obj.metaDescription)
+      ..writeByte(10)
+      ..write(obj.metaTitle)
+      ..writeByte(11)
+      ..write(obj.metaImage);
   }
 
   @override

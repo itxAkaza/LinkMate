@@ -5,7 +5,7 @@ nextTypeId: 1
 types:
   LinkItem:
     typeId: 0
-    nextIndex: 9
+    nextIndex: 12
     fields:
       description:
         index: 1
@@ -23,3 +23,9 @@ types:
         index: 7
       isFavourite:
         index: 8
+      metaDescription:
+        index: 9
+      metaTitle:
+        index: 10
+      metaImage:
+        index: 11

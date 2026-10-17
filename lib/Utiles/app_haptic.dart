@@ -3,9 +3,10 @@ import 'package:vibration/vibration.dart';
 
 class AppHaptics {
   /// Crisp, tiny 15ms tick for selecting tags, categories, or toggles
+  /// Increased to 30ms so Android hardware motors have time to spin up
   static Future<void> lightTap() async {
     if (await Vibration.hasVibrator() ?? false) {
-      Vibration.vibrate(duration: 15, amplitude: 80);
+      Vibration.vibrate(duration: 30, amplitude: 120); // BUMPED UP
     } else {
       HapticFeedback.lightImpact();
     }
