@@ -29,7 +29,7 @@ class MainHomeViewModel extends GetxController {
   }
 
   Future<void> _checkPermissions() async {
-    // Use your global notificationService instance here
+    // Use your global notixclficationService instance here
     bool granted = await notificationService.requestAndCheckPermissions();
 
     if (!granted) {

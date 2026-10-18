@@ -11,6 +11,7 @@ import '../../controllers/home/homeController.dart';
 
 import '../../model/link_model.dart';
 import '../../resources/colors/app_colors.dart';
+import '../drawer/appDrawer.dart';
 import 'detail/linkDetail_screen.dart';
 
 
@@ -25,10 +26,7 @@ class HomeScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: AppColors.readOnlyBg,
       // Empty Drawer for now as requested
-      drawer: const Drawer(
-        backgroundColor: AppColors.backgroundWhite,
-        child: SizedBox.shrink(),
-      ),
+      drawer:const AppDrawer(),
       appBar: AppBar(
         backgroundColor: AppColors.readOnlyBg,
         surfaceTintColor: Colors.transparent,

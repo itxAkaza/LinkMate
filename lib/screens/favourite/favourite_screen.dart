@@ -6,6 +6,7 @@ import 'package:hive_ce_flutter/hive_flutter.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../../Utiles/app_haptic.dart';
+import '../../controllers/fvt/fvtController.dart';
 import '../../controllers/home/homeController.dart';
 
 import '../../model/link_model.dart';
@@ -24,7 +25,11 @@ class FavouriteScreen extends StatelessWidget {
         ? Get.find<HomeController>()
         : Get.put(HomeController());
 
-    final RxBool isGrid = false.obs;
+    final favController = Get.isRegistered<FavouriteController>()
+        ? Get.find<FavouriteController>()
+        : Get.put(FavouriteController(), permanent: true);
+
+
     final isLandscape = MediaQuery.of(context).orientation == Orientation.landscape;
 
     return Scaffold(
@@ -46,13 +51,13 @@ class FavouriteScreen extends StatelessWidget {
           Obx(
                 () => IconButton(
               icon: Icon(
-                isGrid.value ? LucideIcons.layoutList : LucideIcons.layoutGrid,
+                favController.isGridView.value ? LucideIcons.layoutList : LucideIcons.layoutGrid,
                 color: AppColors.iconBlue,
                 size: 20,
               ),
               onPressed: () {
                 AppHaptics.lightTap();
-                isGrid.value = !isGrid.value;
+                favController.toggleViewMode;
               },
             ),
           ),
@@ -144,7 +149,7 @@ class FavouriteScreen extends StatelessWidget {
                     ),
                   )
                       : Obx(() {
-                    if (isGrid.value) {
+                    if (favController.isGridView.value) {
                       return MasonryGridView.count(
                         crossAxisCount: isLandscape ? 3 : 2,
                         mainAxisSpacing: 12,

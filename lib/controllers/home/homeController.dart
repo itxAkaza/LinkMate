@@ -11,6 +11,7 @@ import '../../data/repositories/link_repository.dart';
 import '../../model/link_model.dart';
 import '../../screens/addLink/screens/AddLink/addLink.dart';
 import '../../screens/addLink/screens/scanner/link_scanner_screen.dart';
+import '../../screens/import_export/import_export_screen.dart';
 
 class HomeController extends GetxController {
   final LinkRepository repository = LinkRepository();
@@ -133,7 +134,7 @@ class HomeController extends GetxController {
   /// Placeholder for Export CSV button
   void onExportPressed() {
     AppHaptics.lightTap();
-    // Will be implemented later as requested
+    Get.to(() => const ImportExportScreen());
   }
 
   @override

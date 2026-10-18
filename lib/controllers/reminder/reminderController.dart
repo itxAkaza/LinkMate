@@ -10,7 +10,6 @@ import '../../data/repositories/link_repository.dart';
 import '../../main.dart';
 import '../../model/link_model.dart';
 
-
 enum ReminderFilter { all, done, today, overdue }
 
 class ReminderController extends GetxController {
@@ -35,115 +34,113 @@ class ReminderController extends GetxController {
     activeFilter.value = filter;
   }
 
-  bool _isSameDay(DateTime a, DateTime b) {
-    return a.year == b.year && a.month == b.month && a.day == b.day;
-  }
+  // --- Date & Status Helpers ---
+  bool isDone(LinkItem link) => link.status == 'done';
 
-  bool isLinkDone(LinkItem link) {
-    return link.status == 'done' || link.status == 'watched';
-  }
-
-  bool isLinkOverdue(LinkItem link) {
-    if (link.reminder == null || isLinkDone(link)) return false;
+  bool isOverdue(LinkItem link) {
+    if (link.reminder == null || isDone(link)) return false;
     return link.reminder!.isBefore(DateTime.now());
   }
 
-  bool isLinkDueToday(LinkItem link) {
-    if (link.reminder == null || isLinkDone(link)) return false;
+  bool isDueToday(LinkItem link) {
+    if (link.reminder == null || isDone(link)) return false;
     final now = DateTime.now();
-    return _isSameDay(link.reminder!, now) && !link.reminder!.isBefore(now);
+    final r = link.reminder!;
+    return r.year == now.year &&
+        r.month == now.month &&
+        r.day == now.day &&
+        !r.isBefore(now);
   }
 
-  Map<ReminderFilter, int> getCounts(Box<LinkItem> box) {
-    final allWithReminders = box.values
-        .where((l) => !l.isPrivate && l.reminder != null)
-        .toList();
-
-    int allActiveCount = 0;
-    int doneCount = 0;
-    int todayCount = 0;
-    int overdueCount = 0;
-
-    final now = DateTime.now();
-
-    for (final link in allWithReminders) {
-      if (isLinkDone(link)) {
-        doneCount++;
-      } else {
-        allActiveCount++;
-        if (link.reminder!.isBefore(now)) {
-          overdueCount++;
-        } else if (_isSameDay(link.reminder!, now)) {
-          todayCount++;
-        }
-      }
-    }
-
-    return {
-      ReminderFilter.all: allActiveCount,
-      ReminderFilter.done: doneCount,
-      ReminderFilter.today: todayCount,
-      ReminderFilter.overdue: overdueCount,
-    };
+  List<LinkItem> _getAllReminderLinks(Box<LinkItem> box) {
+    return box.values
+        .where((link) => !link.isPrivate && link.reminder != null)
+        .toList()
+      ..sort((a, b) => a.reminder!.compareTo(b.reminder!));
   }
 
+  // --- Live Counts for the 4 Top Summary Cards ---
+  int getAllCount(Box<LinkItem> box) =>
+      _getAllReminderLinks(box).where((l) => !isDone(l)).length;
+
+  int getDoneCount(Box<LinkItem> box) =>
+      _getAllReminderLinks(box).where((l) => isDone(l)).length;
+
+  int getTodayCount(Box<LinkItem> box) =>
+      _getAllReminderLinks(box).where((l) => isDueToday(l)).length;
+
+  int getOverdueCount(Box<LinkItem> box) =>
+      _getAllReminderLinks(box).where((l) => isOverdue(l)).length;
+
+  // --- Filtered List Based on Selected Top Card & Search ---
   List<LinkItem> getFilteredReminders(Box<LinkItem> box) {
+    final all = _getAllReminderLinks(box);
     final query = searchQuery.value.toLowerCase();
-    final filter = activeFilter.value;
 
-    final items = box.values
-        .where((l) => !l.isPrivate && l.reminder != null)
-        .toList();
-
-    // Sort by closest reminder time
-    items.sort((a, b) => a.reminder!.compareTo(b.reminder!));
-
-    return items.where((link) {
-      bool matchesFilter = false;
-      switch (filter) {
+    final byTab = all.where((link) {
+      switch (activeFilter.value) {
         case ReminderFilter.all:
-          matchesFilter = !isLinkDone(link);
-          break;
+        // Shows active reminders; once marked as read (done), it leaves this screen!
+          return !isDone(link);
         case ReminderFilter.done:
-          matchesFilter = isLinkDone(link);
-          break;
+          return isDone(link);
         case ReminderFilter.today:
-          matchesFilter = isLinkDueToday(link);
-          break;
+          return isDueToday(link);
         case ReminderFilter.overdue:
-          matchesFilter = isLinkOverdue(link);
-          break;
+          return isOverdue(link);
       }
+    }).toList();
 
-      if (!matchesFilter) return false;
-      if (query.isEmpty) return true;
+    if (query.isEmpty) return byTab;
 
-      return link.displayDescription.toLowerCase().contains(query) ||
-          link.url.toLowerCase().contains(query) ||
-          (link.category ?? '').toLowerCase().contains(query);
+    return byTab.where((link) {
+      final inUrl = link.url.toLowerCase().contains(query);
+      final inDesc = link.displayDescription.toLowerCase().contains(query);
+      final inCat = (link.category ?? '').toLowerCase().contains(query);
+      return inUrl || inDesc || inCat;
     }).toList();
   }
 
-  /// Marks reminder as read/done when tapping the bell or check circle
-  Future<void> markAsRead(LinkItem link) async {
-    AppHaptics.mediumTap();
-    if (isLinkDone(link)) {
-      link.status = 'pending';
-      await link.save();
-      Utils.showInAppToast("Restored", "Moved back to active reminders");
-    } else {
-      link.status = 'done';
-      await link.save();
-      Utils.showSuccessToast("Reminder marked as read!");
+  String getSectionHeaderTitle() {
+    switch (activeFilter.value) {
+      case ReminderFilter.all:
+        return "All Reminders";
+      case ReminderFilter.done:
+        return "Completed Reminders";
+      case ReminderFilter.today:
+        return "Today's Reminders";
+      case ReminderFilter.overdue:
+        return "Overdue Reminders";
     }
   }
 
   String formatReminderTime(DateTime dt) {
     final now = DateTime.now();
-    if (_isSameDay(dt, now)) {
-      return "Today, ${DateFormat('h:mm a').format(dt)}";
+    final isSameDay = dt.year == now.year && dt.month == now.month && dt.day == now.day;
+    final timeStr = DateFormat('h:mm a').format(dt);
+
+    if (isSameDay) {
+      return "Today, $timeStr";
     }
-    return DateFormat('dd MMM, h:mm a').format(dt);
+    return "${DateFormat('d MMM').format(dt)}, $timeStr";
+  }
+
+  /// Marks reminder as read/done when tapping the bell or radio circle
+  Future<void> markAsRead(LinkItem link) async {
+    AppHaptics.mediumTap();
+    final wasDone = isDone(link);
+    await repository.markReminderDone(link);
+
+    // Cancel scheduled notification if marked done
+    if (!wasDone && link.key is int) {
+      try {
+        await notificationService.cancelNotification(link.key as int);
+      } catch (_) {}
+    }
+
+    Utils.showSuccessToast(
+      !wasDone ? "Reminder marked as read!" : "Moved back to active reminders",
+    );
   }
 
   @override

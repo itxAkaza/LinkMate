@@ -7,18 +7,25 @@ import 'package:linkvault/screens/categories/widgets/cateogoryLink_screen.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../../Utiles/app_haptic.dart';
+import '../../controllers/category/categoryController.dart';
 import '../../data/repositories/link_repository.dart';
 import '../../model/link_model.dart';
 import '../../resources/colors/app_colors.dart';
 
 
 class CategoryScreen extends StatelessWidget {
-  const CategoryScreen({super.key});
+   const CategoryScreen({super.key});
+
 
   @override
   Widget build(BuildContext context) {
+    final catController = Get.isRegistered<CategoryController>()
+        ? Get.find<CategoryController>()
+        : Get.put(CategoryController(), permanent: true);
+
+
     final repository = LinkRepository();
-    final RxBool isGridView = false.obs;
+
     final isLandscape = MediaQuery.of(context).orientation == Orientation.landscape;
 
     return Scaffold(
@@ -41,13 +48,13 @@ class CategoryScreen extends StatelessWidget {
                 () => IconButton(
               tooltip: "Toggle List/Grid",
               icon: Icon(
-                isGridView.value ? LucideIcons.layoutList : LucideIcons.layoutGrid,
+                catController.isCategoryGrid.value? LucideIcons.layoutList : LucideIcons.layoutGrid,
                 color: AppColors.iconBlue,
                 size: 20,
               ),
               onPressed: () {
                 AppHaptics.lightTap();
-                isGridView.value = !isGridView.value;
+                catController.toggleCategoryGrid;
               },
             ),
           ),
@@ -169,7 +176,7 @@ class CategoryScreen extends StatelessWidget {
 
                   // Category List or Grid
                   Obx(() {
-                    if (isGridView.value) {
+                    if (catController.isCategoryGrid.value) {
                       return SliverPadding(
                         padding: const EdgeInsets.fromLTRB(16, 0, 16, 110),
                         sliver: SliverGrid(

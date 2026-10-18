@@ -7,6 +7,7 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../../../Utiles/app_haptic.dart';
 import '../../../Utiles/category_helper.dart';
+import '../../../controllers/category/categoryController.dart';
 import '../../../controllers/home/homeController.dart';
 
 import '../../../model/link_model.dart';
@@ -18,8 +19,8 @@ import '../../home/widgets/linkCard.dart';
 
 class CategoryLinksScreen extends StatelessWidget {
   final String categoryName;
-
   const CategoryLinksScreen({super.key, required this.categoryName});
+
 
   @override
   Widget build(BuildContext context) {
@@ -27,7 +28,12 @@ class CategoryLinksScreen extends StatelessWidget {
         ? Get.find<HomeController>()
         : Get.put(HomeController());
 
-    final RxBool isGrid = false.obs;
+    final catController = Get.isRegistered<CategoryController>()
+        ? Get.find<CategoryController>()
+        : Get.put(CategoryController(), permanent: true);
+
+
+
     final style = CategoryStyleHelper.getStyle(categoryName);
     final isLandscape = MediaQuery.of(context).orientation == Orientation.landscape;
 
@@ -68,13 +74,13 @@ class CategoryLinksScreen extends StatelessWidget {
           Obx(
                 () => IconButton(
               icon: Icon(
-                isGrid.value ? LucideIcons.layoutList : LucideIcons.layoutGrid,
+                catController.isCategoryLinksGrid.value ? LucideIcons.layoutList : LucideIcons.layoutGrid,
                 color: AppColors.iconBlue,
                 size: 20,
               ),
               onPressed: () {
                 AppHaptics.lightTap();
-                isGrid.value = !isGrid.value;
+                catController.toggleCategoryLinksGrid;
               },
             ),
           ),
@@ -130,7 +136,7 @@ class CategoryLinksScreen extends StatelessWidget {
           return Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
             child: Obx(() {
-              if (isGrid.value) {
+              if (catController.isCategoryLinksGrid.value) {
                 return MasonryGridView.count(
                   crossAxisCount: isLandscape ? 3 : 2,
                   mainAxisSpacing: 12,

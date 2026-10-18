@@ -8,6 +8,7 @@ class LinkRepository {
   static const String categoriesBoxName = 'categories_box';
   static const String userCategoriesKey = 'user_categories';
   static const String settingsBoxName = 'settings_box';
+  static const String lastExportKey = 'last_export_timestamp';
 
   static const List<String> defaultCategories = [
     'Articles',
@@ -26,6 +27,25 @@ class LinkRepository {
   /// Expose ValueListenables so Home, Reminders, Favorites, and Category screens auto-update
   ValueListenable<Box<LinkItem>> get listenableLinks => _box.listenable();
   ValueListenable<Box<List<String>>> get listenableCategories => _categoriesBox.listenable();
+
+  String? getLastExportTime() {
+    return _settingsBox.get(lastExportKey) as String?;
+  }
+
+  Future<void> saveLastExportTime(String formattedTime) async {
+    await _settingsBox.put(lastExportKey, formattedTime);
+  }
+
+  Future<void> ensureCategoryExists(String categoryName) async {
+    final clean = categoryName.trim();
+    if (clean.isEmpty) return;
+    final current = getCategories();
+    final exists = current.any((c) => c.toLowerCase() == clean.toLowerCase());
+    if (!exists) {
+      current.insert(0, clean);
+      await saveCategories(current);
+    }
+  }
 
   // --- PERSISTENT GRID / LIST VIEW STATE PER PAGE ---
   bool getGridViewState(String pageKey) {
