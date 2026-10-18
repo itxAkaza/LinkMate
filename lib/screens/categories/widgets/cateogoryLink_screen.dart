@@ -80,7 +80,7 @@ class CategoryLinksScreen extends StatelessWidget {
               ),
               onPressed: () {
                 AppHaptics.lightTap();
-                catController.toggleCategoryLinksGrid;
+                catController.toggleCategoryLinksGrid();
               },
             ),
           ),

@@ -105,7 +105,7 @@ class LinkImportExportService {
       ]);
     }
 
-    final csvString = const ListToCsvConverter().convert(rows);
+    final String csvString = csv.encode(rows);
     return Uint8List.fromList(utf8.encode(csvString));
   }
 
@@ -180,7 +180,8 @@ class LinkImportExportService {
 
   List<List<String>> _parseCsvBytes(Uint8List bytes) {
     final content = utf8.decode(bytes, allowMalformed: true);
-    final dynamicRows = const CsvToListConverter(shouldParseNumbers: false).convert(content);
+    // NEW csv v8 API: Use csv.decode(content) instead of CsvToListConverter
+    final dynamicRows = csv.decode(content);
     return dynamicRows
         .map((row) => row.map((cell) => cell?.toString().trim() ?? '').toList())
         .toList();

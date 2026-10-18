@@ -54,7 +54,7 @@ class CategoryScreen extends StatelessWidget {
               ),
               onPressed: () {
                 AppHaptics.lightTap();
-                catController.toggleCategoryGrid;
+                catController.toggleCategoryGrid();
               },
             ),
           ),

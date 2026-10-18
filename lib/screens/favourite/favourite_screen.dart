@@ -57,7 +57,7 @@ class FavouriteScreen extends StatelessWidget {
               ),
               onPressed: () {
                 AppHaptics.lightTap();
-                favController.toggleViewMode;
+                favController.toggleViewMode();
               },
             ),
           ),
