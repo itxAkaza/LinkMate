@@ -43,19 +43,22 @@ class HomeController extends GetxController {
   @override
   void onInit() {
     super.onInit();
+    isGridView.value = repository.getGridViewState('home');
     searchController.addListener(() {
       searchQuery.value = searchController.text.trim();
     });
+
   }
 
   void selectTag(String tag) {
     AppHaptics.lightTap();
     selectedTag.value = tag;
   }
-
   void toggleViewMode() {
     AppHaptics.lightTap();
     isGridView.value = !isGridView.value;
+    // Save persistent grid state for Home page
+    repository.saveGridViewState('home', isGridView.value);
   }
 
   /// Filters links from Hive Box based on Search Query & Selected Tag

@@ -28,6 +28,7 @@ void main() async {
 
   await Hive.openBox<LinkItem>('links_box');
   await Hive.openBox<List<String>>('categories_box');
+  await Hive.openBox('settings_box');
   await notificationService.initNotification(true);
 
 

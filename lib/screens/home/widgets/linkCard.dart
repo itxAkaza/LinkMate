@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../../../Utiles/category_helper.dart';
 import '../../../model/link_model.dart';
@@ -24,7 +23,8 @@ class LinkCardWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final style = CategoryStyleHelper.getStyle(link.category!);
+    final categoryName = link.category ?? 'Web';
+    final style = CategoryStyleHelper.getStyle(categoryName);
 
     return GestureDetector(
       onTap: onTap,
@@ -42,24 +42,22 @@ class LinkCardWidget extends StatelessWidget {
             ),
           ],
         ),
-        child: isGridMode ? _buildGridLayout(style) : _buildListLayout(style),
+        child: isGridMode
+            ? _buildGridLayout(style, categoryName)
+            : _buildListLayout(style, categoryName),
       ),
     );
   }
 
-  // --- LIST VIEW LAYOUT (Matches your screenshot cards) ---
-  Widget _buildListLayout(CategoryStyle style) {
+  Widget _buildListLayout(CategoryStyle style, String categoryName) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Thumbnail Image or Category Fallback Icon
             _buildThumbnail(style, size: 62),
             const SizedBox(width: 12),
-
-            // Description + Grey URL
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -89,8 +87,6 @@ class LinkCardWidget extends StatelessWidget {
                 ],
               ),
             ),
-
-            // Right Column: 3-Dots & Heart
             Column(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -119,14 +115,12 @@ class LinkCardWidget extends StatelessWidget {
             ),
           ],
         ),
-
-        // Bottom Row: Category Pill + User Tags
         const SizedBox(height: 12),
         Wrap(
           spacing: 6,
           runSpacing: 6,
           children: [
-            _buildCategoryBadge(style),
+            _buildCategoryBadge(style, categoryName),
             ...link.tags.map((tag) => _buildTagChip(tag)),
           ],
         ),
@@ -134,12 +128,10 @@ class LinkCardWidget extends StatelessWidget {
     );
   }
 
-  // --- STAGGERED GRID LAYOUT ---
-  Widget _buildGridLayout(CategoryStyle style) {
+  Widget _buildGridLayout(CategoryStyle style, String categoryName) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Top Row: Image/Icon + 3-dots
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -172,8 +164,6 @@ class LinkCardWidget extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 12),
-
-        // Description
         Text(
           link.displayDescription,
           maxLines: 3,
@@ -186,8 +176,6 @@ class LinkCardWidget extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 4),
-
-        // Grey URL
         Text(
           link.url,
           maxLines: 1,
@@ -199,13 +187,11 @@ class LinkCardWidget extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 10),
-
-        // Category + Tags
         Wrap(
           spacing: 5,
           runSpacing: 5,
           children: [
-            _buildCategoryBadge(style),
+            _buildCategoryBadge(style, categoryName),
             ...link.tags.take(3).map((tag) => _buildTagChip(tag)),
           ],
         ),
@@ -243,31 +229,21 @@ class LinkCardWidget extends StatelessWidget {
     );
   }
 
-  Widget _buildCategoryBadge(CategoryStyle style) {
+  // UPDATED: Clean Category Pill without the dot!
+  Widget _buildCategoryBadge(CategoryStyle style, String categoryName) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 4),
       decoration: BoxDecoration(
-        color: style.bgColor.withOpacity(0.75),
+        color: style.bgColor.withOpacity(0.8),
         borderRadius: BorderRadius.circular(20),
       ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 6,
-            height: 6,
-            decoration: BoxDecoration(color: style.iconColor, shape: BoxShape.circle),
-          ),
-          const SizedBox(width: 5),
-          Text(
-            link.category!,
-            style: GoogleFonts.manrope(
-              fontSize: 11.5,
-              fontWeight: FontWeight.w700,
-              color: style.iconColor,
-            ),
-          ),
-        ],
+      child: Text(
+        categoryName,
+        style: GoogleFonts.manrope(
+          fontSize: 11.5,
+          fontWeight: FontWeight.w700,
+          color: style.iconColor,
+        ),
       ),
     );
   }

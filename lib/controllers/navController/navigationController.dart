@@ -15,7 +15,7 @@ class MainHomeViewModel extends GetxController {
 
   final List<Widget> screens = [
     const HomeScreen(),
-    const CategoriesScreen(),
+    const CategoryScreen(),
     const LinkScreen(),
     const ReminderScreen(),
     const FavouriteScreen(),
