@@ -39,125 +39,127 @@ class LinkActionsBottomSheet extends StatelessWidget {
         color: AppColors.backgroundWhite,
         borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
       ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // Drag Handle
-          Container(
-            width: 42,
-            height: 4,
-            decoration: BoxDecoration(
-              color: Colors.grey.shade300,
-              borderRadius: BorderRadius.circular(10),
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Drag Handle
+            Container(
+              width: 42,
+              height: 4,
+              decoration: BoxDecoration(
+                color: Colors.grey.shade300,
+                borderRadius: BorderRadius.circular(10),
+              ),
             ),
-          ),
-          const SizedBox(height: 18),
-
-          // Header Preview
-          Row(
-            children: [
-              _buildSmallThumbnail(style),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      link.displayDescription,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: GoogleFonts.manrope(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w800,
-                        color: AppColors.textColorBlack,
+            const SizedBox(height: 18),
+        
+            // Header Preview
+            Row(
+              children: [
+                _buildSmallThumbnail(style),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        link.displayDescription,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: GoogleFonts.manrope(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.textColorBlack,
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      link.url,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: GoogleFonts.manrope(
-                        fontSize: 12.5,
-                        fontWeight: FontWeight.w500,
-                        color: AppColors.subTitleColorGary,
+                      const SizedBox(height: 2),
+                      Text(
+                        link.url,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: GoogleFonts.manrope(
+                          fontSize: 12.5,
+                          fontWeight: FontWeight.w500,
+                          color: AppColors.subTitleColorGary,
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          const Divider(color: Colors.black12, height: 1),
-          const SizedBox(height: 16),
-
-          // 1. Copy URL
-          _buildActionTile(
-            icon: LucideIcons.copy,
-            title: "Copy URL",
-            onTap: () {
-              Get.back();
-              controller.copyLink(link.url);
-            },
-          ),
-          const SizedBox(height: 10),
-
-          // 2. Edit Link (Passes LinkItem reference to AddLinkScreen)
-          _buildActionTile(
-            icon: LucideIcons.pencil,
-            title: "Edit",
-            onTap: () {
-              Get.back();
-              Get.to(() => AddLinkScreen(editingLink: link));
-            },
-          ),
-          const SizedBox(height: 10),
-
-          // 3. Split Share Row (Cut in Half: Simple Share & Quick QR)
-          Row(
-            children: [
-              Expanded(
-                child: _buildActionTile(
-                  icon: LucideIcons.share2,
-                  title: "Share URL",
-                  onTap: () {
-                    Get.back();
-                    controller.shareLinkNative(link);
-                  },
+              ],
+            ),
+            const SizedBox(height: 16),
+            const Divider(color: Colors.black12, height: 1),
+            const SizedBox(height: 16),
+        
+            // 1. Copy URL
+            _buildActionTile(
+              icon: LucideIcons.copy,
+              title: "Copy URL",
+              onTap: () {
+                Get.back();
+                controller.copyLink(link.url);
+              },
+            ),
+            const SizedBox(height: 10),
+        
+            // 2. Edit Link (Passes LinkItem reference to AddLinkScreen)
+            _buildActionTile(
+              icon: LucideIcons.pencil,
+              title: "Edit",
+              onTap: () {
+                Get.back();
+                Get.to(() => AddLinkScreen(editingLink: link));
+              },
+            ),
+            const SizedBox(height: 10),
+        
+            // 3. Split Share Row (Cut in Half: Simple Share & Quick QR)
+            Row(
+              children: [
+                Expanded(
+                  child: _buildActionTile(
+                    icon: LucideIcons.share2,
+                    title: "Share URL",
+                    onTap: () {
+                      Get.back();
+                      controller.shareLinkNative(link);
+                    },
+                  ),
                 ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: _buildActionTile(
-                  icon: LucideIcons.qrCode,
-                  title: "Quick QR",
-                  iconColor: AppColors.iconBlue,
-                  bgColor: AppColors.iconBlue.withOpacity(0.08),
-                  onTap: () {
-                    Get.back();
-                    Get.to(() => QuickShareQrScreen(link: link));
-                  },
+                const SizedBox(width: 10),
+                Expanded(
+                  child: _buildActionTile(
+                    icon: LucideIcons.qrCode,
+                    title: "Quick QR",
+                    iconColor: AppColors.iconBlue,
+                    bgColor: AppColors.iconBlue.withOpacity(0.08),
+                    onTap: () {
+                      Get.back();
+                      Get.to(() => QuickShareQrScreen(link: link));
+                    },
+                  ),
                 ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
-
-          // 4. Delete Link
-          _buildActionTile(
-            icon: LucideIcons.trash2,
-            title: "Delete",
-            textColor: AppColors.dangerRed,
-            iconColor: AppColors.dangerRed,
-            bgColor: AppColors.dangerRed.withOpacity(0.08),
-            tileColor: AppColors.dangerRed.withOpacity(0.06),
-            onTap: () {
-              Get.back();
-              controller.deleteLink(link);
-            },
-          ),
-        ],
+              ],
+            ),
+            const SizedBox(height: 10),
+        
+            // 4. Delete Link
+            _buildActionTile(
+              icon: LucideIcons.trash2,
+              title: "Delete",
+              textColor: AppColors.dangerRed,
+              iconColor: AppColors.dangerRed,
+              bgColor: AppColors.dangerRed.withOpacity(0.08),
+              tileColor: AppColors.dangerRed.withOpacity(0.06),
+              onTap: () {
+                Get.back();
+                controller.deleteLink(link);
+              },
+            ),
+          ],
+        ),
       ),
     );
   }
