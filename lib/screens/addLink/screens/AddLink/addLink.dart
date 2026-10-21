@@ -404,7 +404,7 @@ class _AddLinkScreenState extends State<AddLinkScreen> {
                               ),
                             ),
                             Text(
-                              "Requires biometric unlock to view later",
+                              "Requires 4-digit PIN to view later",
                               style: GoogleFonts.manrope(
                                 fontSize: 12,
                                 color: AppColors.subTitleColorGary,
@@ -418,7 +418,7 @@ class _AddLinkScreenState extends State<AddLinkScreen> {
                           value: controller.isPrivate.value,
                           activeColor: Colors.white,
                           activeTrackColor: AppColors.iconBlue,
-                          onChanged: (val) => controller.isPrivate.value = val,
+                          onChanged: (val) => controller.togglePrivateVault(val),
                         ),
                       ),
                     ],

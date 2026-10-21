@@ -28,8 +28,9 @@ void main() async {
 
   await Hive.openBox<LinkItem>('links_box');
   await Hive.openBox<List<String>>('categories_box');
-  await Hive.openBox('settings_box');
-  await notificationService.initNotification(true);
+  final settingsBox = await Hive.openBox('settings_box');
+  final bool isNotifEnabled = settingsBox.get('notifications_enabled', defaultValue: true) as bool;
+  await notificationService.initNotification(isNotifEnabled);
 
 
   runApp(

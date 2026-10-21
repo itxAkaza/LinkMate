@@ -8,7 +8,12 @@ import '../../../Utiles/utiles.dart';
 
 import '../../../resources/colors/app_colors.dart';
 import '../../controllers/home/homeController.dart';
+import '../../data/repositories/link_repository.dart';
 import '../import_export/import_export_screen.dart';
+import '../infoScreen/about_screen.dart';
+import '../infoScreen/privacyPolicy_screen.dart';
+import '../privateVault/vault_pin_screen.dart';
+import '../setting/settings_screen.dart';
 
 
 class AppDrawer extends StatelessWidget {
@@ -93,7 +98,20 @@ class AppDrawer extends StatelessWidget {
                           onTap: () {
                             AppHaptics.lightTap();
                             Get.back();
-                            Utils.showInAppToast("Private Vault", "Coming next!");
+                            final repo = LinkRepository();
+                            if (repo.hasVaultPin()) {
+                              // Ask for 4-digit PIN, then open PrivateVaultScreen
+                              Get.to(() => const VaultPinScreen(
+                                mode: PinScreenMode.verify,
+                                openVaultOnSuccess: true,
+                              ));
+                            } else {
+                              // First time: Create 4-digit PIN, then open PrivateVaultScreen
+                              Get.to(() => const VaultPinScreen(
+                                mode: PinScreenMode.setup,
+                                openVaultOnSuccess: true,
+                              ));
+                            }
                           },
                         ),
                         _buildDrawerItem(
@@ -102,13 +120,12 @@ class AppDrawer extends StatelessWidget {
                           onTap: () {
                             AppHaptics.lightTap();
                             Get.back();
-                            Utils.showInAppToast("Settings", "Coming next!");
+                            Get.to(() => const SettingsScreen());
                           },
                         ),
                         _buildDrawerItem(
                           icon: LucideIcons.scanLine,
                           title: "QR Code Scan",
-                          isHighlighted: true,
                           onTap: () {
                             AppHaptics.lightTap();
                             Get.back();
@@ -140,8 +157,10 @@ class AppDrawer extends StatelessWidget {
                           onTap: () {
                             AppHaptics.lightTap();
                             Get.back();
+                            Get.to(() => const PrivacyPolicyScreen());
                           },
                         ),
+
                         _buildDrawerItem(
                           icon: LucideIcons.circleHelp,
                           title: "Feedback",
@@ -158,9 +177,9 @@ class AppDrawer extends StatelessWidget {
                           onTap: () {
                             AppHaptics.lightTap();
                             Get.back();
+                            Get.to(() => const AboutScreen());
                           },
                         ),
-
                         const Spacer(),
                         const SizedBox(height: 20),
 
@@ -214,7 +233,6 @@ class AppDrawer extends StatelessWidget {
     required IconData icon,
     required String title,
     required VoidCallback onTap,
-    bool isHighlighted = false,
     bool isBlueIcon = false,
   }) {
     return Padding(
@@ -225,9 +243,7 @@ class AppDrawer extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
           decoration: BoxDecoration(
-            color: isHighlighted
-                ? AppColors.iconBlue.withOpacity(0.08)
-                : Colors.transparent,
+            color: Colors.transparent,
             borderRadius: BorderRadius.circular(16),
           ),
           child: Row(
@@ -235,7 +251,7 @@ class AppDrawer extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(9),
                 decoration: BoxDecoration(
-                  color: isHighlighted || isBlueIcon
+                  color:  isBlueIcon
                       ? AppColors.iconBlue.withOpacity(0.12)
                       : AppColors.overlayFieldGray,
                   borderRadius: BorderRadius.circular(12),
@@ -243,7 +259,7 @@ class AppDrawer extends StatelessWidget {
                 child: Icon(
                   icon,
                   size: 19,
-                  color: isHighlighted || isBlueIcon
+                  color:  isBlueIcon
                       ? AppColors.iconBlue
                       : AppColors.textColorBlack,
                 ),
@@ -255,22 +271,11 @@ class AppDrawer extends StatelessWidget {
                   style: GoogleFonts.manrope(
                     fontSize: 14.5,
                     fontWeight: FontWeight.w700,
-                    color: isHighlighted
-                        ? AppColors.iconBlue
-                        : AppColors.textColorBlack,
+                    color:
+                         AppColors.textColorBlack,
                   ),
                 ),
               ),
-              if (isHighlighted)
-                Container(
-                  width: 7,
-                  height: 7,
-                  decoration: const BoxDecoration(
-                    color: AppColors.iconBlue,
-                    shape: BoxShape.circle,
-                  ),
-                )
-              else
                 const Icon(
                   LucideIcons.chevronRight,
                   size: 16,

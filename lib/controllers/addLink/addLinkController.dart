@@ -11,6 +11,7 @@ import '../../data/repositories/link_repository.dart';
 import '../../model/link_model.dart';
 import '../../main.dart';
 import '../../screens/addLink/screens/scanner/link_scanner_screen.dart';
+import '../../screens/privateVault/vault_pin_screen.dart';
 
 class AddLinkViewModel extends GetxController {
   final LinkRepository _repository = LinkRepository();
@@ -245,6 +246,29 @@ class AddLinkViewModel extends GetxController {
     }
   }
 
+  Future<void> togglePrivateVault(bool value) async {
+    AppHaptics.lightTap();
+    if (!value) {
+      isPrivate.value = false;
+      return;
+    }
+
+    // Check if 4-digit PIN is already configured in settings_box
+    if (_repository.hasVaultPin()) {
+      isPrivate.value = true;
+    } else {
+      // Open 4-digit PIN setup screen first!
+      final bool? pinCreated = await Get.to<bool>(
+            () => const VaultPinScreen(mode: PinScreenMode.setup),
+      );
+      if (pinCreated == true && _repository.hasVaultPin()) {
+        isPrivate.value = true;
+      } else {
+        isPrivate.value = false;
+      }
+    }
+  }
+
   // --- Validation & Save / Update ---
   String? validateUrl(String? value) {
     if (value == null || value.trim().isEmpty) {
@@ -336,13 +360,17 @@ class AddLinkViewModel extends GetxController {
       notificationId = await _repository.saveLink(newLink);
     }
 
-    if (isReminderEnabled.value) {
+    // --- SCHEDULE OR CANCEL NOTIFICATION HERE (After notificationId is ready) ---
+    if (isReminderEnabled.value && _repository.areNotificationsEnabled()) {
+      await notificationService.initNotification(true);
       await notificationService.showScheduleNotification(
         id: notificationId,
         title: "LinkVault Reminder (${selectedCategory.value})",
         body: desc.isNotEmpty ? desc : (fetchedTitle ?? "Time to revisit: $url"),
         scheduledDate: reminderDateTime.value,
       );
+    } else if (!isReminderEnabled.value && isEditMode.value) {
+      await notificationService.cancelNotification(notificationId);
     }
 
     isSaving.value = false;
