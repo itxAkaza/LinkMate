@@ -1,6 +1,5 @@
 
 
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
@@ -259,7 +258,7 @@ class ReminderLinkCard extends StatelessWidget {
           width: size,
           height: size,
           fit: BoxFit.cover,
-          errorBuilder: (_, __, ___) => _fallbackIcon(style, size),
+          errorBuilder: (_, _, _) => _fallbackIcon(style, size),
         ),
       );
     }

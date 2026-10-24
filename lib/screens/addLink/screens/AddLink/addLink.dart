@@ -292,7 +292,7 @@ class _AddLinkScreenState extends State<AddLinkScreen> {
                           Obx(
                                 () => Switch(
                               value: controller.isReminderEnabled.value,
-                              activeColor: Colors.white,
+                              activeThumbColor: Colors.white,
                               activeTrackColor: AppColors.iconBlue,
                               onChanged: (val) => controller.toggleReminder(val, context),
                             ),
@@ -416,7 +416,7 @@ class _AddLinkScreenState extends State<AddLinkScreen> {
                       Obx(
                             () => Switch(
                           value: controller.isPrivate.value,
-                          activeColor: Colors.white,
+                          activeThumbColor: Colors.white,
                           activeTrackColor: AppColors.iconBlue,
                           onChanged: (val) => controller.togglePrivateVault(val),
                         ),

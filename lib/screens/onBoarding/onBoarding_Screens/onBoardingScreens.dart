@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:lottie/lottie.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../../../resources/assets/image_assets.dart';
-import '../../../resources/colors/app_colors.dart';
 import 'onBoardingTemplate.dart';
 
 class OnBoarding1 extends StatelessWidget {

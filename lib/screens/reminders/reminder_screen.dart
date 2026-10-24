@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hive_ce_flutter/hive_flutter.dart';
@@ -234,7 +233,7 @@ class ReminderScreen extends StatelessWidget {
                     padding: const EdgeInsets.fromLTRB(16, 0, 16, 110),
                     sliver: SliverList.separated(
                       itemCount: reminders.length,
-                      separatorBuilder: (_, __) => const SizedBox(height: 12),
+                      separatorBuilder: (_, _) => const SizedBox(height: 12),
                       itemBuilder: (context, index) {
                         final link = reminders[index];
                         return ReminderLinkCard(

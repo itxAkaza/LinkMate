@@ -178,7 +178,7 @@ class FavouriteScreen extends StatelessWidget {
                       padding: const EdgeInsets.only(bottom: 100),
                       physics: const BouncingScrollPhysics(),
                       itemCount: favLinks.length,
-                      separatorBuilder: (_, __) => const SizedBox(height: 12),
+                      separatorBuilder: (_, _) => const SizedBox(height: 12),
                       itemBuilder: (context, index) {
                         final link = favLinks[index];
                         return LinkCardWidget(

@@ -210,7 +210,7 @@ class LinkCardWidget extends StatelessWidget {
           width: size,
           height: size,
           fit: BoxFit.cover,
-          errorBuilder: (_, __, ___) => _buildFallbackBox(style, size),
+          errorBuilder: (_, _, _) => _buildFallbackBox(style, size),
         ),
       );
     }

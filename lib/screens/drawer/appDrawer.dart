@@ -5,7 +5,6 @@ import 'package:linkvault/screens/drawer/widget/vault_chain_wrapper.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../../../Utiles/app_haptic.dart';
-import '../../../Utiles/utiles.dart';
 
 import '../../../resources/colors/app_colors.dart';
 import '../../controllers/home/homeController.dart';

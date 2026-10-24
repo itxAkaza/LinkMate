@@ -162,7 +162,7 @@ class CategoryLinksScreen extends StatelessWidget {
                 padding: const EdgeInsets.only(bottom: 40),
                 physics: const BouncingScrollPhysics(),
                 itemCount: categoryLinks.length,
-                separatorBuilder: (_, __) => const SizedBox(height: 12),
+                separatorBuilder: (_, _) => const SizedBox(height: 12),
                 itemBuilder: (context, index) {
                   final link = categoryLinks[index];
                   return LinkCardWidget(

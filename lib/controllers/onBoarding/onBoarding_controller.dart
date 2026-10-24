@@ -5,7 +5,6 @@ import '../../Utiles/app_haptic.dart';
 import '../../data/repositories/link_repository.dart';
 // TODO: Update this import to point to your main BottomNav / MainScreen widget
 import '../../resources/route/routes_names.dart';
-import '../../screens/home/home_screen.dart';
 
 class OnBoardingController extends GetxController {
   final LinkRepository _repository = LinkRepository();

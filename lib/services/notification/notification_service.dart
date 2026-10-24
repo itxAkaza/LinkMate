@@ -108,21 +108,35 @@ class NotificationServices {
     required String body,
     required DateTime scheduledDate,
   }) async {
-    if (!_isInitialized) return; // Prevent crash if notifications are toggled off
+    if (!_isInitialized) return;
 
     final tz.TZDateTime scheduleTime = tz.TZDateTime.from(scheduledDate, tz.local);
 
     if (scheduleTime.isBefore(tz.TZDateTime.now(tz.local))) {
-      return; // Don't schedule if the time is already in the past
+      return;
     }
 
-    await notificationPlugin.zonedSchedule(
-      id: id,
-      title: title,
-      body: body,
-      scheduledDate: scheduleTime,
-      notificationDetails: _scheduleNotificationDetails(),
-      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-    );
+    try {
+      // 1. Try to schedule with exact precision
+      await notificationPlugin.zonedSchedule(
+        id: id,
+        title: title,
+        body: body,
+        scheduledDate: scheduleTime,
+        notificationDetails: _scheduleNotificationDetails(),
+        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+      );
+    } catch (e) {
+      // 2. Android 14+ Fallback: If exact alarms are denied by the user,
+      // fallback to inexact scheduling to prevent the app from crashing.
+      await notificationPlugin.zonedSchedule(
+        id: id,
+        title: title,
+        body: body,
+        scheduledDate: scheduleTime,
+        notificationDetails: _scheduleNotificationDetails(),
+        androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+      );
+    }
   }
 }

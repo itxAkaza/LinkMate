@@ -202,7 +202,7 @@ class CategoryScreen extends StatelessWidget {
                       padding: const EdgeInsets.fromLTRB(16, 0, 16, 110),
                       sliver: SliverList.separated(
                         itemCount: categoryList.length,
-                        separatorBuilder: (_, __) => const SizedBox(height: 12),
+                        separatorBuilder: (_, _) => const SizedBox(height: 12),
                         itemBuilder: (context, index) {
                           final catName = categoryList[index];
                           final count = publicLinks

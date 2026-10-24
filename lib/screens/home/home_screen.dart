@@ -122,7 +122,7 @@ class HomeScreen extends StatelessWidget {
                             scrollDirection: Axis.horizontal,
                             physics: const BouncingScrollPhysics(),
                             itemCount: controller.filterTags.length,
-                            separatorBuilder: (_, __) => const SizedBox(width: 8),
+                            separatorBuilder: (_, _) => const SizedBox(width: 8),
                             itemBuilder: (context, index) {
                               final tag = controller.filterTags[index];
                               final isSelected = controller.selectedTag.value == tag;
@@ -236,7 +236,7 @@ class HomeScreen extends StatelessWidget {
                     padding: const EdgeInsets.only(left: 16, right: 16, bottom: 100),
                     sliver: SliverList.separated(
                       itemCount: links.length,
-                      separatorBuilder: (_, __) => const SizedBox(height: 12),
+                      separatorBuilder: (_, _) => const SizedBox(height: 12),
                       itemBuilder: (context, index) {
                         final link = links[index];
                         return LinkCardWidget(

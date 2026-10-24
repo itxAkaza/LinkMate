@@ -1,14 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:get/get_core/src/get_main.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:linkvault/resources/colors/app_colors.dart';
 import 'package:linkvault/screens/addLink/screens/AddLink/addLink.dart';
 import 'package:linkvault/screens/addLink/screens/scanner/link_scanner_screen.dart';
 import 'package:linkvault/screens/addLink/widget/addCards.dart';
-
 import 'package:lucide_icons_flutter/lucide_icons.dart';
-import 'package:mobile_scanner/mobile_scanner.dart';
 
 import '../import_export/import_format_screen.dart';
 

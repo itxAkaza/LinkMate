@@ -1,6 +1,6 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:hive_ce/hive.dart';
 import 'package:hive_ce_flutter/adapters.dart';
 import 'package:linkvault/resources/route/routes.dart';
 import 'package:linkvault/resources/route/routes_names.dart';
@@ -14,24 +14,31 @@ final notificationService = NotificationServices();
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await LiquidGlassWidgets.initialize();
-  await Hive.initFlutter();
+
+  // 1. Run LiquidGlass shader init and Hive storage init in PARALLEL
+  await Future.wait([
+    LiquidGlassWidgets.initialize(),
+    Hive.initFlutter(),
+  ]);
 
   Hive.registerAdapters();
 
-  await Hive.openBox<LinkItem>('links_box');
-  await Hive.openBox<List<String>>('categories_box');
-  final settingsBox = await Hive.openBox('settings_box');
+  // 2. Open all 3 Hive boxes in PARALLEL (1 disk wait instead of 3)
+  final results = await Future.wait([
+    Hive.openBox<LinkItem>('links_box'),
+    Hive.openBox<List<String>>('categories_box'),
+    Hive.openBox('settings_box'),
+  ]);
 
-  // 1. Check Notification Setting
+  final Box settingsBox = results[2];
+
+  // 3. Read flags synchronously (0ms)
   final bool isNotifEnabled =
   settingsBox.get('notifications_enabled', defaultValue: true) as bool;
-  await notificationService.initNotification(isNotifEnabled);
-
-  // 2. Check Onboarding Completed Flag
   final bool isOnboardingDone =
   settingsBox.get('onboarding_completed', defaultValue: false) as bool;
 
+  // 4. Render the UI immediately!
   runApp(
     LiquidGlassWidgets.wrap(
       child: MyApp(isOnboardingDone: isOnboardingDone),
@@ -52,6 +59,11 @@ void main() async {
       ),
     ),
   );
+
+  // 5. Initialize Timezones & Notifications AFTER the first frame renders
+  WidgetsBinding.instance.addPostFrameCallback((_) {
+    unawaited(notificationService.initNotification(isNotifEnabled));
+  });
 }
 
 class MyApp extends StatelessWidget {
@@ -65,7 +77,6 @@ class MyApp extends StatelessWidget {
       title: 'LinkMate',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(brightness: Brightness.light),
-      // 3. Dynamically route to MainHome or Onboarding on boot!
       initialRoute: isOnboardingDone
           ? RoutesNames.mainHome
           : RoutesNames.onboarding,

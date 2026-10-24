@@ -108,7 +108,7 @@ class SettingsScreen extends StatelessWidget {
                       trailing: Obx(
                             () => Switch(
                           value: controller.notificationsEnabled.value,
-                          activeColor: Colors.white,
+                          activeThumbColor: Colors.white,
                           activeTrackColor: AppColors.iconBlue,
                           onChanged: controller.toggleNotifications,
                         ),

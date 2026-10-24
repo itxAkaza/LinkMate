@@ -215,7 +215,7 @@ class PrivateVaultScreen extends StatelessWidget {
                       padding: const EdgeInsets.only(bottom: 40),
                       physics: const BouncingScrollPhysics(),
                       itemCount: privateLinks.length,
-                      separatorBuilder: (_, __) => const SizedBox(height: 12),
+                      separatorBuilder: (_, _) => const SizedBox(height: 12),
                       itemBuilder: (context, index) {
                         final link = privateLinks[index];
                         return LinkCardWidget(

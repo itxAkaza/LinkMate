@@ -174,7 +174,7 @@ class LinkActionsBottomSheet extends StatelessWidget {
           width: 44,
           height: 44,
           fit: BoxFit.cover,
-          errorBuilder: (_, __, ___) => _buildFallbackIcon(style),
+          errorBuilder: (_, _, _) => _buildFallbackIcon(style),
         ),
       );
     }

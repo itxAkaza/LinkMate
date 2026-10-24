@@ -4,7 +4,7 @@ import '../../screens/onBoarding/intro_screen.dart';
 import 'routes_names.dart';
 
 class AppRoutes {
-  static appRoutes() => [
+  static List<GetPage<dynamic>> appRoutes() => [
     GetPage(
       name: RoutesNames.onboarding,
       page: () => const IntroScreen(),

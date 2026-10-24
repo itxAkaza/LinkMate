@@ -9,16 +9,10 @@
     <!-- VIBRATE: Enables the app to make the device vibrate. -->
     <uses-permission android:name="android.permission.VIBRATE"/>
 
-    <!-- ACCESS_NOTIFICATION_POLICY: Lets the app read or change Do Not Disturb settings. -->
-    <uses-permission android:name="android.permission.ACCESS_NOTIFICATION_POLICY" />
-
     <!-- for exact notfication time -->
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM"/>
 
     <uses-permission android:name="android.permission.INTERNET"/>
-
-
-
 
 
 
@@ -30,7 +24,7 @@
     </queries>
 
     <application
-        android:label="linkvault"
+        android:label="LinkMate"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
 

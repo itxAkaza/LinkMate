@@ -272,10 +272,14 @@ class AddLinkViewModel extends GetxController {
   // --- Validation & Save / Update ---
   String? validateUrl(String? value) {
     if (value == null || value.trim().isEmpty) {
+      Utils.showErrorToast("Please enter a link URL");
       return "Please enter a link URL";
+
     }
     if (!LinkUtils.isValidUrl(value)) {
+      Utils.showErrorToast("Please enter a valid link");
       return "Please enter a valid web link (e.g., https://google.com)";
+
     }
     return null;
   }
