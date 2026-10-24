@@ -1,11 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:lucide_icons_flutter/lucide_icons.dart';
-
-import '../../../Utiles/category_helper.dart';
-
-import '../../../model/link_model.dart';
-import '../../../resources/colors/app_colors.dart';
 
 class ReminderSummaryCard extends StatelessWidget {
   final String label;
@@ -33,7 +27,7 @@ class ReminderSummaryCard extends StatelessWidget {
       onTap: onTap,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
         decoration: BoxDecoration(
           color: bgColor,
           borderRadius: BorderRadius.circular(20),
@@ -54,7 +48,9 @@ class ReminderSummaryCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          mainAxisSize: MainAxisSize.min,
           children: [
+            // Top Row: Icon + Active Indicator Dot
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -64,7 +60,7 @@ class ReminderSummaryCard extends StatelessWidget {
                     color: Colors.white,
                     shape: BoxShape.circle,
                   ),
-                  child: Icon(icon, color: primaryColor, size: 18),
+                  child: Icon(icon, color: primaryColor, size: 17),
                 ),
                 if (isSelected)
                   Container(
@@ -77,24 +73,38 @@ class ReminderSummaryCard extends StatelessWidget {
                   ),
               ],
             ),
-            const SizedBox(height: 12),
-            Text(
-              count.toString(),
-              style: GoogleFonts.manrope(
-                fontSize: 24,
-                fontWeight: FontWeight.w800,
-                color: primaryColor,
-                height: 1.1,
-              ),
-            ),
-            const SizedBox(height: 2),
-            Text(
-              label,
-              style: GoogleFonts.manrope(
-                fontSize: 13,
-                fontWeight: FontWeight.w700,
-                color: primaryColor.withOpacity(0.85),
-              ),
+            const SizedBox(height: 8),
+
+            // Bottom Group: Count + Label
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    count.toString(),
+                    style: GoogleFonts.manrope(
+                      fontSize: 22,
+                      fontWeight: FontWeight.w800,
+                      color: primaryColor,
+                      height: 1.1,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.manrope(
+                    fontSize: 12.5,
+                    fontWeight: FontWeight.w700,
+                    color: primaryColor.withOpacity(0.85),
+                  ),
+                ),
+              ],
             ),
           ],
         ),
@@ -102,4 +112,3 @@ class ReminderSummaryCard extends StatelessWidget {
     );
   }
 }
-

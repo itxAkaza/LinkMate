@@ -5,9 +5,11 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:hive_ce_flutter/hive_flutter.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
+import '../../Utiles/app_haptic.dart';
 import '../../controllers/home/homeController.dart';
 import '../../model/link_model.dart';
 import '../../resources/colors/app_colors.dart';
+import '../addLink/screens/AddLink/addLink.dart';
 import '../drawer/appDrawer.dart';
 import 'detail/linkDetail_screen.dart';
 import 'widgets/linkBottomSheet.dart';
@@ -207,7 +209,7 @@ class HomeScreen extends StatelessWidget {
                 if (links.isEmpty)
                   SliverFillRemaining(
                     hasScrollBody: false,
-                    child: _buildEmptyState(),
+                    child: _buildEmptyState(controller, box),
                   )
                 else if (controller.isGridView.value)
                   SliverPadding(
@@ -255,38 +257,100 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildEmptyState() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: AppColors.iconBlue.withOpacity(0.08),
-              shape: BoxShape.circle,
+  Widget _buildEmptyState(HomeController controller, Box<LinkItem> box) {
+    final bool hasAnyPublicLinks = box.values.any((l) => !l.isPrivate);
+    final bool isFiltering = controller.searchQuery.value.isNotEmpty ||
+        controller.selectedTag.value != 'All';
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(28, 16, 28, 110),
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(22),
+              decoration: BoxDecoration(
+                color: AppColors.iconBlue.withOpacity(0.08),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                hasAnyPublicLinks && isFiltering
+                    ? LucideIcons.searchX
+                    : LucideIcons.link2,
+                size: 38,
+                color: AppColors.iconBlue,
+              ),
             ),
-            child: const Icon(LucideIcons.link2Off, size: 36, color: AppColors.iconBlue),
-          ),
-          const SizedBox(height: 14),
-          Text(
-            "No links found",
-            style: GoogleFonts.manrope(
-              fontSize: 17,
-              fontWeight: FontWeight.w800,
-              color: AppColors.textColorBlack,
+            const SizedBox(height: 16),
+            Text(
+              hasAnyPublicLinks && isFiltering
+                  ? "No matching links found"
+                  : "Your vault is empty",
+              textAlign: TextAlign.center,
+              style: GoogleFonts.manrope(
+                fontSize: 18,
+                fontWeight: FontWeight.w800,
+                color: AppColors.textColorBlack,
+              ),
             ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            "Add a new link or adjust your search filters.",
-            style: GoogleFonts.manrope(
-              fontSize: 13.5,
-              color: AppColors.subTitleColorGary,
+            const SizedBox(height: 6),
+            Text(
+              hasAnyPublicLinks && isFiltering
+                  ? "Try clearing your search query or switching the tag filter."
+                  : "Save your first article, video, or website link to keep everything organized in one place.",
+              textAlign: TextAlign.center,
+              style: GoogleFonts.manrope(
+                fontSize: 13.5,
+                fontWeight: FontWeight.w500,
+                color: AppColors.subTitleColorGary,
+                height: 1.45,
+              ),
             ),
-          ),
-        ],
+            const SizedBox(height: 22),
+
+            // Quick Action Button
+            Container(
+              height: 48,
+              decoration: BoxDecoration(
+                gradient: AppColors.primaryButtonGradient,
+                borderRadius: BorderRadius.circular(14),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.buttonGradientMiddle.withOpacity(0.28),
+                    blurRadius: 12,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.transparent,
+                  shadowColor: Colors.transparent,
+                  padding: const EdgeInsets.symmetric(horizontal: 22),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                ),
+                onPressed: () {
+                  AppHaptics.lightTap();
+                  Get.to(() => const AddLinkScreen());
+                },
+                icon: const Icon(LucideIcons.plus, color: Colors.white, size: 18),
+                label: Text(
+                  hasAnyPublicLinks && isFiltering ? "Add New Link" : "Add Your First Link",
+                  style: GoogleFonts.manrope(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w800,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
+
 }

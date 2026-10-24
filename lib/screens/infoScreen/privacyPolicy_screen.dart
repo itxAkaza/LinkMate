@@ -65,6 +65,11 @@ class PrivacyPolicyScreen extends StatelessWidget {
                 _buildPolicySection(
                   "5. Your Control",
                   "You retain complete ownership of your data at all times. You can export your links to CSV or Excel backups, or delete your links permanently from your device whenever you choose.",
+                ),
+
+                _buildPolicySection(
+                  "6. Feedback & Support Communications",
+                  "When you submit feedback, bug reports, or feature requests via the app's feedback screen, it opens your device's native email client pre-addressed to pixelplot.app@gmail.com. We only receive the information you explicitly choose to type and send within that email. This data is used solely to respond to your inquiries and improve LinkMate.",
                   isLast: true,
                 ),
               ],

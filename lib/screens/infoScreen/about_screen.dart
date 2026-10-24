@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
+import '../../resources/assets/image_assets.dart';
 import '../../resources/colors/app_colors.dart';
 
 
@@ -23,7 +24,7 @@ class AboutScreen extends StatelessWidget {
           onPressed: () => Get.back(),
         ),
         title: Text(
-          "About LinkVault",
+          "About LinkMate",
           style: GoogleFonts.manrope(
             color: AppColors.textColorBlack,
             fontWeight: FontWeight.w800,
@@ -48,22 +49,22 @@ class AboutScreen extends StatelessWidget {
                 ),
                 child: Column(
                   children: [
-                    Container(
-                      width: 68,
-                      height: 68,
-                      decoration: BoxDecoration(
-                        gradient: AppColors.primaryButtonGradient,
-                        borderRadius: BorderRadius.circular(20),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(20),
+                      child: Image.asset(
+                        ImageAssets.logo,
+                        width: 72,
+                        height: 72,
+                        fit: BoxFit.cover,
                       ),
-                      child: const Icon(LucideIcons.link2, color: Colors.white, size: 34),
                     ),
                     const SizedBox(height: 14),
                     Text(
-                      "LinkVault",
+                      "LinkMate",
                       style: GoogleFonts.manrope(
                         fontSize: 22,
                         fontWeight: FontWeight.w800,
-                        color: AppColors.textColorBlack,
+                        color: const Color(0xFF111111),
                       ),
                     ),
                     const SizedBox(height: 4),
@@ -77,7 +78,7 @@ class AboutScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 16),
                     Text(
-                      "LinkVault is your smart, offline-first personal link manager. Save articles, videos, and resources from any app, organize them with custom categories and tags, schedule reminders, and lock sensitive links inside your PIN-protected Private Vault.",
+                      "LinkMate is your smart, offline-first personal link manager. Save articles, videos, and resources from any app, organize them with custom categories and tags, schedule reminders, and lock sensitive links inside your PIN-protected Private Vault.",
                       textAlign: TextAlign.center,
                       style: GoogleFonts.manrope(
                         fontSize: 13.5,

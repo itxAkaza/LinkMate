@@ -1,95 +1,163 @@
-// import 'package:flutter/material.dart';
-// import 'package:get/get.dart';
-// import 'package:texops/controllers/onBoarding/onBoarding_controller.dart';
-// import 'package:texops/resources/colors/app_colors.dart';
-// import 'package:texops/screens/lab_engineer/dashboard/lab_enigneer_dashboard.dart';
-// import 'package:texops/screens/onBoarding/onBoarding_Screens/onBoarding2.dart';
-// import 'package:texops/screens/onBoarding/onBoarding_Screens/onBoarding3.dart';
-// import 'package:texops/screens/onBoarding/widgets/my_button.dart';
-//
-// import '../auth/login_screen.dart';
-// import 'onBoarding_Screens/onBoarding1.dart';
-// import 'package:smooth_page_indicator/smooth_page_indicator.dart';
-//
-// class IntroScreen extends StatelessWidget {
-//    IntroScreen({super.key});
-//
-//   final introController=Get.put(onBoradingController());
-//
-//   @override
-//   Widget build(BuildContext context) {
-//
-//     final height =MediaQuery.of(context).size.height;
-//     final width =MediaQuery.of(context).size.width;
-//
-//     return Scaffold(
-//       body: Stack(
-//         children: [
-//           PageView(
-//             controller:introController.controller ,
-//             onPageChanged: (value){
-//               !(value==2)?introController.makeLast(false):introController.makeLast(true) ;
-//
-//             },
-//
-//             children: [
-//               OnBoarding1(),
-//               OnBoarding2(),
-//               OnBoarding3(),
-//
-//
-//             ],
-//
-//           ),
-//
-//
-//           Container(
-//             alignment: Alignment(0,0.65),
-//             padding: EdgeInsets.symmetric(horizontal: 8),
-//             child: SmoothPageIndicator(
-//               controller: introController.controller,
-//               count: 3,
-//               effect: ExpandingDotsEffect(
-//                   dotColor: AppColors.pageIndicator,
-//                   activeDotColor: AppColors.primaryDarkTeal,
-//                   dotWidth: 13,
-//                   dotHeight: 13,
-//                   paintStyle: PaintingStyle.fill
-//               ),
-//
-//             ),
-//           ),
-//
-//           Container(
-//             alignment: Alignment(0,0.9),
-//             child: Obx((){
-//               return introController.isLast.value
-//                   ?
-//
-//               MYButton(text: "Get Started", height: height*0.07,width: width*0.85,
-//                   onTap:
-//                       (){
-//                     Get.offAll(()=>LoginScreen());
-//                     Get.delete<onBoradingController>();
-//
-//                   }
-//               ) :
-//
-//               MYButton(text: "Next",height: height*0.07,width: width*0.85,
-//                   onTap:
-//                       ()=>introController.controller.nextPage(
-//                       duration: Duration(milliseconds: 500),
-//                       curve: Curves.easeIn)
-//               );
-//
-//             }),
-//           )
-//
-//
-//
-//
-//         ],
-//       ),
-//     );
-//   }
-// }
+import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:linkvault/screens/onBoarding/widgets/my_button.dart';
+import 'package:smooth_page_indicator/smooth_page_indicator.dart';
+
+import '../../controllers/onBoarding/onBoarding_controller.dart';
+
+import '../../resources/assets/image_assets.dart';
+import '../../resources/colors/app_colors.dart';
+import 'onBoarding_Screens/onBoardingScreens.dart';
+
+
+
+class IntroScreen extends StatelessWidget {
+  const IntroScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final introController = Get.isRegistered<OnBoardingController>()
+        ? Get.find<OnBoardingController>()
+        : Get.put(OnBoardingController());
+
+    final isLandscape = MediaQuery.of(context).orientation == Orientation.landscape;
+
+    return Scaffold(
+      backgroundColor: AppColors.readOnlyBg,
+      body: SafeArea(
+        child: Stack(
+          children: [
+            // 1. 3 ONBOARDING PAGES
+            PageView(
+              controller: introController.pageController,
+              physics: const BouncingScrollPhysics(),
+              onPageChanged: introController.onPageChanged,
+              children: const [
+                OnBoarding1(),
+                OnBoarding2(),
+                OnBoarding3(),
+              ],
+            ),
+
+            // 2. TOP HEADER: LinkMate Logo + "Skip" Button
+            Positioned(
+              top: 12,
+              left: 24,
+              right: 20,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: [
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(10),
+                        child: Image.asset(
+                          ImageAssets.logo,
+                          width: 34,
+                          height: 34,
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Text(
+                        "LinkMate",
+                        style: GoogleFonts.manrope(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w800,
+                          color: const Color(0xFF111111),
+                        ),
+                      ),
+                    ],
+                  ),
+                  Obx(
+                        () => introController.isLast.value
+                        ? const SizedBox.shrink()
+                        : TextButton(
+                      onPressed: introController.skipOnboarding,
+                      style: TextButton.styleFrom(
+                        foregroundColor: AppColors.subTitleColorGary,
+                      ),
+                      child: Text(
+                        "Skip",
+                        style: GoogleFonts.manrope(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.subTitleColorGary,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            // 3. BOTTOM CONTROLS: SmoothPageIndicator + ShimmerGradientButton
+            Positioned(
+              left: 28,
+              right: 28,
+              bottom: isLandscape ? 16 : 28,
+              child: isLandscape
+                  ? Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  SmoothPageIndicator(
+                    controller: introController.pageController,
+                    count: 3,
+                    effect: ExpandingDotsEffect(
+                      expansionFactor: 3,
+                      dotColor: AppColors.iconBlue.withOpacity(0.2),
+                      activeDotColor: AppColors.iconBlue,
+                      dotWidth: 9,
+                      dotHeight: 9,
+                    ),
+                  ),
+                  SizedBox(
+                    width: 240,
+                    child: Obx(
+                          () => ShimmerGradientButton(
+                        text: introController.isLast.value
+                            ? "Get Started"
+                            : "Next",
+                        isLastPage: introController.isLast.value,
+                        height: 48,
+                        onTap: introController.nextPage,
+                      ),
+                    ),
+                  ),
+                ],
+              )
+                  : Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  SmoothPageIndicator(
+                    controller: introController.pageController,
+                    count: 3,
+                    effect: ExpandingDotsEffect(
+                      expansionFactor: 3.2,
+                      dotColor: AppColors.iconBlue.withOpacity(0.2),
+                      activeDotColor: AppColors.iconBlue,
+                      dotWidth: 10,
+                      dotHeight: 10,
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  Obx(
+                        () => ShimmerGradientButton(
+                      text: introController.isLast.value
+                          ? "Get Started"
+                          : "Next",
+                      isLastPage: introController.isLast.value,
+                      height: 56,
+                      onTap: introController.nextPage,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}

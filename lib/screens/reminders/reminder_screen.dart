@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hive_ce_flutter/hive_flutter.dart';
@@ -120,13 +121,16 @@ class ReminderScreen extends StatelessWidget {
                         const SizedBox(height: 18),
 
                         // 2. Responsive 4 Summary Filter Cards (2x2 in Portrait, 4x1 in Landscape)
+                        // 2. Responsive 4 Summary Filter Cards (Zero Overflow on any screen)
+                        // 2. Fixed-Grid 4 Summary Filter Cards (Locked positions, zero position jumping)
+                        // 2. Fixed-Height Grid (Zero jumping + Zero overflow on any screen)
                         GridView.count(
                           crossAxisCount: isLandscape ? 4 : 2,
                           shrinkWrap: true,
                           physics: const NeverScrollableScrollPhysics(),
                           mainAxisSpacing: 12,
                           crossAxisSpacing: 12,
-                          childAspectRatio: isLandscape ? 1.45 : 1.35,
+                          mainAxisExtent: 116, // <-- Fixed height locks position & prevents overflow!
                           children: [
                             ReminderSummaryCard(
                               label: "All",

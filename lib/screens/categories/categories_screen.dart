@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart'; // <-- 1. Add this import
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hive_ce_flutter/hive_flutter.dart';
@@ -12,10 +13,8 @@ import '../../data/repositories/link_repository.dart';
 import '../../model/link_model.dart';
 import '../../resources/colors/app_colors.dart';
 
-
 class CategoryScreen extends StatelessWidget {
-   const CategoryScreen({super.key});
-
+  const CategoryScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -23,9 +22,7 @@ class CategoryScreen extends StatelessWidget {
         ? Get.find<CategoryController>()
         : Get.put(CategoryController(), permanent: true);
 
-
     final repository = LinkRepository();
-
     final isLandscape = MediaQuery.of(context).orientation == Orientation.landscape;
 
     return Scaffold(
@@ -48,14 +45,13 @@ class CategoryScreen extends StatelessWidget {
                 () => IconButton(
               tooltip: "Toggle List/Grid",
               icon: Icon(
-                catController.isCategoryGrid.value? LucideIcons.layoutList : LucideIcons.layoutGrid,
+                catController.isCategoryGrid.value
+                    ? LucideIcons.layoutList
+                    : LucideIcons.layoutGrid,
                 color: AppColors.iconBlue,
                 size: 20,
               ),
-              onPressed: () {
-                AppHaptics.lightTap();
-                catController.toggleCategoryGrid();
-              },
+              onPressed: catController.toggleCategoryGrid,
             ),
           ),
           const SizedBox(width: 8),
@@ -71,7 +67,6 @@ class CategoryScreen extends StatelessWidget {
             builder: (context, linkBox, _) {
               final publicLinks = linkBox.values.where((l) => !l.isPrivate).toList();
 
-              // Ensure any category present on a link is also included
               final allCategories = <String>{...categories};
               for (final link in publicLinks) {
                 if (link.category != null && link.category!.trim().isNotEmpty) {
@@ -105,7 +100,6 @@ class CategoryScreen extends StatelessWidget {
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            // Left: Total Saved
                             Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
@@ -143,8 +137,6 @@ class CategoryScreen extends StatelessWidget {
                                 ),
                               ],
                             ),
-
-                            // Right: Categories Count
                             Column(
                               crossAxisAlignment: CrossAxisAlignment.end,
                               children: [
@@ -174,39 +166,34 @@ class CategoryScreen extends StatelessWidget {
                     ),
                   ),
 
-                  // Category List or Grid
+                  // 2. ADAPTIVE MASONRY GRID OR LIST (Never overflows on any screen!)
                   Obx(() {
                     if (catController.isCategoryGrid.value) {
                       return SliverPadding(
                         padding: const EdgeInsets.fromLTRB(16, 0, 16, 110),
-                        sliver: SliverGrid(
-                          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: isLandscape ? 3 : 2,
-                            mainAxisSpacing: 12,
-                            crossAxisSpacing: 12,
-                            childAspectRatio: 1.25,
-                          ),
-                          delegate: SliverChildBuilderDelegate(
-                                (context, index) {
-                              final catName = categoryList[index];
-                              final count = publicLinks
-                                  .where((l) =>
-                              (l.category ?? 'Web').toLowerCase() ==
-                                  catName.toLowerCase())
-                                  .length;
+                        sliver: SliverMasonryGrid.count(
+                          crossAxisCount: isLandscape ? 3 : 2,
+                          mainAxisSpacing: 12,
+                          crossAxisSpacing: 12,
+                          childCount: categoryList.length,
+                          itemBuilder: (context, index) {
+                            final catName = categoryList[index];
+                            final count = publicLinks
+                                .where((l) =>
+                            (l.category ?? 'Web').toLowerCase() ==
+                                catName.toLowerCase())
+                                .length;
 
-                              return CategoryItemCard(
-                                categoryName: catName,
-                                linkCount: count,
-                                isGridMode: true,
-                                onTap: () {
-                                  AppHaptics.lightTap();
-                                  Get.to(() => CategoryLinksScreen(categoryName: catName));
-                                },
-                              );
-                            },
-                            childCount: categoryList.length,
-                          ),
+                            return CategoryItemCard(
+                              categoryName: catName,
+                              linkCount: count,
+                              isGridMode: true,
+                              onTap: () {
+                                AppHaptics.lightTap();
+                                Get.to(() => CategoryLinksScreen(categoryName: catName));
+                              },
+                            );
+                          },
                         ),
                       );
                     }

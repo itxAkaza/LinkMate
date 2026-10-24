@@ -14,6 +14,16 @@ class LinkRepository {
   static const String notificationsEnabledKey = 'notifications_enabled';
 
 
+  static const String onboardingCompletedKey = 'onboarding_completed';
+
+  bool isOnboardingCompleted() {
+    return _settingsBox.get(onboardingCompletedKey, defaultValue: false) as bool;
+  }
+
+  Future<void> setOnboardingCompleted() async {
+    await _settingsBox.put(onboardingCompletedKey, true);
+  }
+
   static const List<String> defaultCategories = [
     'Articles',
     'Videos',

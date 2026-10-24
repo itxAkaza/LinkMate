@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:linkvault/screens/drawer/widget/vault_chain_wrapper.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../../../Utiles/app_haptic.dart';
@@ -9,8 +10,10 @@ import '../../../Utiles/utiles.dart';
 import '../../../resources/colors/app_colors.dart';
 import '../../controllers/home/homeController.dart';
 import '../../data/repositories/link_repository.dart';
+import '../../resources/assets/image_assets.dart';
 import '../import_export/import_export_screen.dart';
 import '../infoScreen/about_screen.dart';
+import '../infoScreen/feedBackScreen.dart';
 import '../infoScreen/privacyPolicy_screen.dart';
 import '../privateVault/vault_pin_screen.dart';
 import '../setting/settings_screen.dart';
@@ -45,26 +48,75 @@ class AppDrawer extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         // 1. BRAND HEADER
-                        Container(
-                          width: 52,
-                          height: 52,
-                          decoration: BoxDecoration(
-                            color: AppColors.iconBlue.withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          child: const Icon(
-                            LucideIcons.link2,
-                            color: AppColors.iconBlue,
-                            size: 26,
+                        // 1. BRAND HEADER IN APP DRAWER
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(16),
+                          child: Image.asset(
+                            ImageAssets.logo,
+                            width: 54,
+                            height: 54,
+                            fit: BoxFit.cover,
                           ),
                         ),
                         const SizedBox(height: 14),
                         Text(
-                          "LinkVault",
+                          "LinkMate",
                           style: GoogleFonts.manrope(
                             fontSize: 22,
                             fontWeight: FontWeight.w800,
-                            color: AppColors.textColorBlack,
+                            color: const Color(0xFF111111),
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          "Your personal smart link vault",
+                          style: GoogleFonts.manrope(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w500,
+                            color: AppColors.subTitleColorGary,
+                          ),
+                        ),
+                        const SizedBox(height: 14),
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 6),
+                          child: VaultChainWrapper(
+                            onTap: () {
+                              AppHaptics.lightTap();
+                              Get.back();
+                              final repo = LinkRepository();
+                              if (repo.hasVaultPin()) {
+                                Get.to(() => const VaultPinScreen(
+                                  mode: PinScreenMode.verify,
+                                  openVaultOnSuccess: true,
+                                ));
+                              } else {
+                                Get.to(() => const VaultPinScreen(
+                                  mode: PinScreenMode.setup,
+                                  openVaultOnSuccess: true,
+                                ));
+                              }
+                            },
+                            child: _buildDrawerItem(
+                              icon: LucideIcons.lock,
+                              title: "Private Vault",
+                              onTap: () {
+                                AppHaptics.lightTap();
+                                Get.back();
+                                final repo = LinkRepository();
+                                if (repo.hasVaultPin()) {
+                                  Get.to(() => const VaultPinScreen(
+                                    mode: PinScreenMode.verify,
+                                    openVaultOnSuccess: true,
+                                  ));
+                                } else {
+                                  Get.to(() => const VaultPinScreen(
+                                    mode: PinScreenMode.setup,
+                                    openVaultOnSuccess: true,
+                                  ));
+                                }
+                              },
+                              isPrivate: true
+                            ),
                           ),
                         ),
                         const SizedBox(height: 2),
@@ -114,15 +166,7 @@ class AppDrawer extends StatelessWidget {
                             }
                           },
                         ),
-                        _buildDrawerItem(
-                          icon: LucideIcons.settings,
-                          title: "Settings",
-                          onTap: () {
-                            AppHaptics.lightTap();
-                            Get.back();
-                            Get.to(() => const SettingsScreen());
-                          },
-                        ),
+
                         _buildDrawerItem(
                           icon: LucideIcons.scanLine,
                           title: "QR Code Scan",
@@ -139,6 +183,15 @@ class AppDrawer extends StatelessWidget {
                             AppHaptics.lightTap();
                             Get.back();
                             Get.to(() => const ImportExportScreen());
+                          },
+                        ),
+                        _buildDrawerItem(
+                          icon: LucideIcons.settings,
+                          title: "Settings",
+                          onTap: () {
+                            AppHaptics.lightTap();
+                            Get.back();
+                            Get.to(() => const SettingsScreen());
                           },
                         ),
 
@@ -168,6 +221,7 @@ class AppDrawer extends StatelessWidget {
                           onTap: () {
                             AppHaptics.lightTap();
                             Get.back();
+                            Get.to(() => const FeedbackScreen());
                           },
                         ),
                         _buildDrawerItem(
@@ -196,15 +250,18 @@ class AppDrawer extends StatelessWidget {
                               ),
                             ),
                             Text(
-                              "© 2026 LinkVault",
+                              "© 2026 LinkMate",
                               style: GoogleFonts.manrope(
                                 fontSize: 12,
                                 fontWeight: FontWeight.w600,
                                 color: AppColors.subTitleColorGary,
                               ),
                             ),
+
                           ],
                         ),
+                        const SizedBox(height: 30),
+
                       ],
                     ),
                   ),
@@ -234,9 +291,10 @@ class AppDrawer extends StatelessWidget {
     required String title,
     required VoidCallback onTap,
     bool isBlueIcon = false,
+    bool isPrivate=false,
   }) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 6),
+      padding: isPrivate ?const EdgeInsets.only(bottom: 0) : const EdgeInsets.only(bottom: 6),
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(16),
