@@ -42,7 +42,7 @@ class SettingsController extends GetxController {
       notificationsEnabled.value = true;
       await _repository.setNotificationsEnabled(true);
       await notificationService.handleSettingsToggle(true);
-      Utils.showSuccessToast("Reminder notifications enabled");
+
     } else {
       notificationsEnabled.value = false;
       await _repository.setNotificationsEnabled(false);

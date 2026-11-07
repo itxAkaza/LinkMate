@@ -46,7 +46,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
               children: [
                 _buildPolicySection(
                   "1. 100% On-Device Local Storage",
-                  "LinkVault is an offline-first application. All of your saved links, notes, categories, tags, reminders, and Private Vault PIN codes are stored strictly locally on your device using Hive database storage. We do not transmit or upload your saved links to any external servers.",
+                  "LinkMate is an offline-first application. All of your saved links, notes, categories, tags, reminders, and Private Vault PIN codes are stored strictly locally on your device using Hive database storage. We do not transmit or upload your saved links to any external servers.",
                 ),
                 _buildPolicySection(
                   "2. Private Vault Security",
