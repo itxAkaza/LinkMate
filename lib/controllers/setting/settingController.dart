@@ -47,7 +47,7 @@ class SettingsController extends GetxController {
       notificationsEnabled.value = false;
       await _repository.setNotificationsEnabled(false);
       await notificationService.handleSettingsToggle(false);
-      Utils.showInAppToast("Notifications Off", "Scheduled alerts have been paused.");
+
     }
   }
 

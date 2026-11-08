@@ -10,7 +10,6 @@ import '../../data/repositories/link_repository.dart';
 import '../../resources/colors/app_colors.dart';
 import 'forgot_pin_warning_screen.dart';
 
-
 enum PinScreenMode {
   setup,  // Creating a new 4-digit PIN (Confirm step included)
   verify, // Unlocking Private Vault
@@ -38,6 +37,7 @@ class _VaultPinScreenState extends State<VaultPinScreen> {
   String _firstSetupPin = '';
   bool _isConfirmingSetup = false;
   bool _isOldPinVerified = false;
+  bool _isProcessing = false;
   String? _errorText;
 
   String get _headerTitle {
@@ -67,7 +67,7 @@ class _VaultPinScreenState extends State<VaultPinScreen> {
   }
 
   void _onDigitPress(String digit) {
-    if (_enteredPin.length >= 4) return;
+    if (_enteredPin.length >= 4 || _isProcessing) return;
     AppHaptics.lightTap();
 
     setState(() {
@@ -76,12 +76,20 @@ class _VaultPinScreenState extends State<VaultPinScreen> {
     });
 
     if (_enteredPin.length == 4) {
-      Future.delayed(const Duration(milliseconds: 120), _handleCompletedPin);
+      _isProcessing = true;
+      Future.delayed(const Duration(milliseconds: 120), () async {
+        await _handleCompletedPin();
+        if (mounted) {
+          setState(() {
+            _isProcessing = false;
+          });
+        }
+      });
     }
   }
 
   void _onBackspace() {
-    if (_enteredPin.isEmpty) return;
+    if (_enteredPin.isEmpty || _isProcessing) return;
     AppHaptics.lightTap();
     setState(() {
       _errorText = null;
@@ -97,6 +105,7 @@ class _VaultPinScreenState extends State<VaultPinScreen> {
         if (widget.openVaultOnSuccess) {
           Get.off(() => const PrivateVaultScreen());
         } else {
+          if (Get.isSnackbarOpen) Get.closeAllSnackbars();
           Get.back(result: true);
         }
       } else {
@@ -140,13 +149,22 @@ class _VaultPinScreenState extends State<VaultPinScreen> {
       if (_enteredPin == _firstSetupPin) {
         await _repository.saveVaultPin(_enteredPin);
         AppHaptics.mediumTap();
-        Utils.showSuccessToast("Private Vault PIN saved!");
+
+        // Close any active snackbar BEFORE popping the route so Get.back() pops the screen!
+        if (Get.isSnackbarOpen) {
+          Get.closeAllSnackbars();
+        }
 
         if (widget.openVaultOnSuccess) {
           Get.off(() => const PrivateVaultScreen());
         } else {
           Get.back(result: true);
         }
+
+        // Show toast AFTER navigation so it doesn't intercept Get.back()
+        Future.delayed(const Duration(milliseconds: 100), () {
+          Utils.showSuccessToast("Private Vault PIN saved!");
+        });
       } else {
         AppHaptics.errorVibrate();
         setState(() {
@@ -155,6 +173,23 @@ class _VaultPinScreenState extends State<VaultPinScreen> {
           _firstSetupPin = '';
           _isConfirmingSetup = false;
         });
+      }
+    }
+  }
+
+  Future<void> _onForgotPinPressed() async {
+    AppHaptics.lightTap();
+    if (widget.openVaultOnSuccess) {
+      // Replace current PIN screen with the Warning Screen
+      Get.off(() => const ForgotPinWarningScreen(openVaultAfterReset: true));
+    } else {
+      // Wait for Warning -> New PIN Setup flow, then bubble result back up
+      final bool? resetSuccess = await Get.to<bool>(
+            () => const ForgotPinWarningScreen(openVaultAfterReset: false),
+      );
+      if (resetSuccess == true && mounted) {
+        if (Get.isSnackbarOpen) Get.closeAllSnackbars();
+        Get.back(result: true);
       }
     }
   }
@@ -171,7 +206,10 @@ class _VaultPinScreenState extends State<VaultPinScreen> {
         elevation: 0,
         leading: IconButton(
           icon: const Icon(LucideIcons.arrowLeft, color: AppColors.textColorBlack),
-          onPressed: () => Get.back(result: false),
+          onPressed: () {
+            if (Get.isSnackbarOpen) Get.closeAllSnackbars();
+            Get.back(result: false);
+          },
         ),
       ),
       body: SafeArea(
@@ -297,12 +335,7 @@ class _VaultPinScreenState extends State<VaultPinScreen> {
         if (showForgotBtn) ...[
           const SizedBox(height: 18),
           TextButton(
-            onPressed: () {
-              AppHaptics.lightTap();
-              Get.to(() => ForgotPinWarningScreen(
-                openVaultAfterReset: widget.openVaultOnSuccess,
-              ));
-            },
+            onPressed: _onForgotPinPressed,
             child: Text(
               "Forgot PIN?",
               style: GoogleFonts.manrope(

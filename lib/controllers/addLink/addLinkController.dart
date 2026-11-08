@@ -12,6 +12,8 @@ import '../../model/link_model.dart';
 import '../../main.dart';
 import '../../screens/addLink/screens/scanner/link_scanner_screen.dart';
 import '../../screens/privateVault/vault_pin_screen.dart';
+import '../home/homeController.dart';
+import '../navController/navigationController.dart';
 
 class AddLinkViewModel extends GetxController {
   final LinkRepository _repository = LinkRepository();
@@ -183,26 +185,40 @@ class AddLinkViewModel extends GetxController {
     }
   }
 
-  // --- Board DateTime Picker ---
+  // --- Updated Board DateTime Picker ---
   Future<void> pickReminderDateTime(BuildContext context) async {
+    final initial = reminderDateTime.value.isBefore(DateTime.now())
+        ? DateTime.now().add(const Duration(minutes: 15))
+        : reminderDateTime.value;
+
+    reminderDateTime.value = initial;
+
     final result = await showBoardDateTimePicker(
       context: context,
       pickerType: DateTimePickerType.datetime,
-      initialDate: reminderDateTime.value.isBefore(DateTime.now())
-          ? DateTime.now().add(const Duration(minutes: 15))
-          : reminderDateTime.value,
+      initialDate: initial,
       minimumDate: DateTime.now(),
       maximumDate: DateTime(2035),
-      options: BoardDateTimeOptions(
-        languages: const BoardPickerLanguages.en(),
+      onChanged: (DateTime val) {
+        reminderDateTime.value = val;
+      },
+      options: const BoardDateTimeOptions(
+        languages: BoardPickerLanguages.en(),
         startDayOfWeek: DateTime.monday,
         pickerFormat: PickerFormat.dmy,
+        boardTitle: 'Select Date (DD/MM/YYYY) & Time',
+        boardTitleTextStyle: TextStyle(
+          fontSize: 13.5,
+          fontWeight: FontWeight.w700,
+          color: Color(0xFF2B7FFF),
+        ),
+        showDateButton: true,
         backgroundColor: Colors.white,
-        foregroundColor: const Color(0xFFF5F5F7),
-        textColor: const Color(0xFF101828),
-        activeColor: const Color(0xFF2B7FFF),
+        foregroundColor: Color(0xFFF5F5F7),
+        textColor: Color(0xFF101828),
+        activeColor: Color(0xFF2B7FFF),
         activeTextColor: Colors.white,
-        backgroundDecoration: const BoxDecoration(
+        backgroundDecoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
         ),
@@ -253,11 +269,9 @@ class AddLinkViewModel extends GetxController {
       return;
     }
 
-    // Check if 4-digit PIN is already configured in settings_box
     if (_repository.hasVaultPin()) {
       isPrivate.value = true;
     } else {
-      // Open 4-digit PIN setup screen first!
       final bool? pinCreated = await Get.to<bool>(
             () => const VaultPinScreen(mode: PinScreenMode.setup),
       );
@@ -274,12 +288,10 @@ class AddLinkViewModel extends GetxController {
     if (value == null || value.trim().isEmpty) {
       Utils.showErrorToast("Please enter a link URL");
       return "Please enter a link URL";
-
     }
     if (!LinkUtils.isValidUrl(value)) {
       Utils.showErrorToast("Please enter a valid link");
       return "Please enter a valid web link (e.g., https://google.com)";
-
     }
     return null;
   }
@@ -295,7 +307,7 @@ class AddLinkViewModel extends GetxController {
 
     // Check duplicate (ignores current link if editing)
     if (_repository.isDuplicate(url, ignoreKey: editingLink?.key)) {
-      Utils.showErrorToast("This link is already saved in LinkVault!");
+      Utils.showErrorToast("This link is already saved in LinkMate!");
       AppHaptics.errorVibrate();
       return;
     }
@@ -307,86 +319,109 @@ class AddLinkViewModel extends GetxController {
     }
 
     isSaving.value = true;
-
-    String? fetchedTitle = editingLink?.metaTitle;
-    String? fetchedDesc = editingLink?.metaDescription;
-    String? fetchedImage = editingLink?.metaImage;
-
-    final bool shouldFetchMeta = editingLink == null ||
-        LinkUtils.normalizeUrl(editingLink!.url).toLowerCase() != url.toLowerCase();
-
-    if (shouldFetchMeta) {
-      try {
-        final data = await MetadataFetch.extract(url);
-        if (data != null) {
-          fetchedTitle = data.title;
-          fetchedDesc = data.description;
-          fetchedImage = data.image;
-        }
-      } catch (e) {
-        debugPrint("Metadata fetch failed, saving without it: $e");
-      }
-    }
-
-    late final int notificationId;
-
-    if (isEditMode.value && editingLink != null) {
-      // --- UPDATE EXISTING HIVE OBJECT ---
-      editingLink!
-        ..url = url
-        ..description = desc.isEmpty ? null : desc
-        ..category = selectedCategory.value
-        ..tags = selectedTags.toList()
-        ..reminder = isReminderEnabled.value ? reminderDateTime.value : null
-        ..isPrivate = isPrivate.value
-        ..metaTitle = fetchedTitle
-        ..metaDescription = fetchedDesc
-        ..metaImage = fetchedImage;
-
-      await _repository.updateLink(editingLink!);
-      notificationId = (editingLink!.key is int) ? editingLink!.key as int : editingLink.hashCode;
-    } else {
-      // --- SAVE NEW HIVE OBJECT ---
-      final newLink = LinkItem(
-        url: url,
-        description: desc.isEmpty ? null : desc,
-        category: selectedCategory.value,
-        tags: selectedTags.toList(),
-        reminder: isReminderEnabled.value ? reminderDateTime.value : null,
-        isPrivate: isPrivate.value,
-        isFavourite: false,
-        status: 'pending',
-        metaTitle: fetchedTitle,
-        metaDescription: fetchedDesc,
-        metaImage: fetchedImage,
-      );
-
-      notificationId = await _repository.saveLink(newLink);
-    }
-
-    // --- SCHEDULE OR CANCEL NOTIFICATION HERE (After notificationId is ready) ---
-    if (isReminderEnabled.value && _repository.areNotificationsEnabled()) {
-      await notificationService.initNotification(true);
-      await notificationService.showScheduleNotification(
-        id: notificationId,
-        title: "LinkVault Reminder (${selectedCategory.value})",
-        body: desc.isNotEmpty ? desc : (fetchedTitle ?? "Time to revisit: $url"),
-        scheduledDate: reminderDateTime.value,
-      );
-    } else if (!isReminderEnabled.value && isEditMode.value) {
-      await notificationService.cancelNotification(notificationId);
-    }
-
-    isSaving.value = false;
     final bool wasEditing = isEditMode.value;
 
-    AppHaptics.mediumTap();
-    _resetFields();
+    try {
+      String? fetchedTitle = editingLink?.metaTitle;
+      String? fetchedDesc = editingLink?.metaDescription;
+      String? fetchedImage = editingLink?.metaImage;
 
-    Get.back();
-    Utils.showSuccessToast(
-      wasEditing ? "Link updated successfully!" : "Link saved successfully!",
-    );
+      final bool shouldFetchMeta = editingLink == null ||
+          LinkUtils.normalizeUrl(editingLink!.url).toLowerCase() != url.toLowerCase();
+
+      if (shouldFetchMeta) {
+        try {
+          final data = await MetadataFetch.extract(url).timeout(
+            const Duration(seconds: 4),
+          );
+          if (data != null) {
+            fetchedTitle = data.title;
+            fetchedDesc = data.description;
+            fetchedImage = data.image;
+          }
+        } catch (e) {
+          debugPrint("Metadata fetch failed or timed out, saving without it: $e");
+        }
+      }
+
+      late final int notificationId;
+
+      if (isEditMode.value && editingLink != null) {
+        // --- UPDATE EXISTING HIVE OBJECT ---
+        editingLink!
+          ..url = url
+          ..description = desc.isEmpty ? null : desc
+          ..category = selectedCategory.value
+          ..tags = selectedTags.toList()
+          ..reminder = isReminderEnabled.value ? reminderDateTime.value : null
+          ..isPrivate = isPrivate.value
+          ..metaTitle = fetchedTitle
+          ..metaDescription = fetchedDesc
+          ..metaImage = fetchedImage;
+
+        await _repository.updateLink(editingLink!);
+        notificationId = (editingLink!.key is int) ? editingLink!.key as int : editingLink.hashCode;
+      } else {
+        // --- SAVE NEW HIVE OBJECT ---
+        final newLink = LinkItem(
+          url: url,
+          description: desc.isEmpty ? null : desc,
+          category: selectedCategory.value,
+          tags: selectedTags.toList(),
+          reminder: isReminderEnabled.value ? reminderDateTime.value : null,
+          isPrivate: isPrivate.value,
+          isFavourite: false,
+          status: 'pending',
+          metaTitle: fetchedTitle,
+          metaDescription: fetchedDesc,
+          metaImage: fetchedImage,
+        );
+
+        notificationId = await _repository.saveLink(newLink);
+      }
+
+      // --- SCHEDULE OR CANCEL NOTIFICATION ---
+      if (isReminderEnabled.value && _repository.areNotificationsEnabled()) {
+        await notificationService.initNotification(true);
+        await notificationService.showScheduleNotification(
+          id: notificationId,
+          title: "LinkMate Reminder (${selectedCategory.value})",
+          body: desc.isNotEmpty ? desc : (fetchedTitle ?? "Time to revisit: $url"),
+          scheduledDate: reminderDateTime.value,
+        );
+      } else if (!isReminderEnabled.value && wasEditing) {
+        await notificationService.cancelNotification(notificationId);
+      }
+
+      AppHaptics.mediumTap();
+      _resetFields();
+
+      // Force HomeController to refresh its list immediately
+      if (Get.isRegistered<HomeController>()) {
+        Get.find<HomeController>().refreshLinks();
+      }
+
+      // Close any active snackbar before popping route
+      if (Get.isSnackbarOpen) {
+        Get.closeAllSnackbars();
+      }
+
+      // Navigate back properly whether opened as a pushed route or via the Bottom Navigation Bar
+      if (Get.context != null && Navigator.of(Get.context!).canPop()) {
+        Get.back(result: true);
+      } else if (Get.isRegistered<MainHomeViewModel>()) {
+        Get.find<MainHomeViewModel>().setIndex(0);
+      }
+
+      Future.delayed(const Duration(milliseconds: 100), () {
+        Utils.showInAppToast(
+          "LinkMate",
+          wasEditing ? "Link updated successfully!" : "Link saved successfully!",
+        );
+      });
+    } finally {
+      isSaving.value = false;
+    }
   }
 
   @override

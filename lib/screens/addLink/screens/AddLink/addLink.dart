@@ -9,6 +9,7 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../../../../Utiles/category_helper.dart';
 import '../../../../controllers/addLink/addLinkController.dart';
+import '../../../../controllers/navController/navigationController.dart';
 import '../../../../model/link_model.dart';
 import '../../../../resources/colors/app_colors.dart';
 
@@ -56,7 +57,13 @@ class _AddLinkScreenState extends State<AddLinkScreen> {
         elevation: 0,
         leading: IconButton(
           icon: const Icon(LucideIcons.arrowLeft, color: AppColors.textColorBlack),
-          onPressed: () => Get.back(),
+          onPressed: () {
+            if (Navigator.of(context).canPop()) {
+              Get.back();
+            } else if (Get.isRegistered<MainHomeViewModel>()) {
+              Get.find<MainHomeViewModel>().setIndex(0);
+            }
+          },
         ),
         title: Obx(
               () => Text(
@@ -82,7 +89,13 @@ class _AddLinkScreenState extends State<AddLinkScreen> {
                 ),
                 child: const Icon(LucideIcons.x, color: AppColors.textGray, size: 18),
               ),
-              onPressed: () => Get.back(),
+              onPressed: () {
+                if (Navigator.of(context).canPop()) {
+                  Get.back();
+                } else if (Get.isRegistered<MainHomeViewModel>()) {
+                  Get.find<MainHomeViewModel>().setIndex(0);
+                }
+              },
             ),
           ),
         ],
@@ -103,6 +116,9 @@ class _AddLinkScreenState extends State<AddLinkScreen> {
                 TextFormField(
                   controller: controller.urlController,
                   validator: controller.validateUrl,
+                  onTapOutside: (event) {
+                    FocusManager.instance.primaryFocus?.unfocus();
+                  },
                   keyboardType: TextInputType.url,
                   style: GoogleFonts.manrope(
                     fontSize: 15,

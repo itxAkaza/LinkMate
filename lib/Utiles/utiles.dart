@@ -1,56 +1,99 @@
 import 'package:flutter/material.dart';
-import 'package:fluttertoast/fluttertoast.dart';
+
 import 'package:get/get.dart';
 
 class Utils {
-
-  // 1. Fixed typo in method name
-  static void fieldFocusChange(BuildContext context, FocusNode current, FocusNode nextFocus) {
+  static void fieldFocusChange(
+    BuildContext context,
+    FocusNode current,
+    FocusNode nextFocus,
+  ) {
     current.unfocus();
     FocusScope.of(context).requestFocus(nextFocus);
   }
 
-  // 2. Standardized name and fixed typo for general errors
+  /// Helper to clear any active toast/snackbar so they never stack
+  static void _clearActiveNotifications() {
+    if (Get.isSnackbarOpen) {
+      Get.closeAllSnackbars();
+    }
+  }
+
+  // 2. In-app Error Toast (Never lingers outside the app & never stacks)
   static void showErrorToast(String message) {
-    Fluttertoast.showToast(
-        msg: message,
-        toastLength: Toast.LENGTH_SHORT,
-        gravity: ToastGravity.BOTTOM,
-        timeInSecForIosWeb: 1,
+    _clearActiveNotifications();
+
+    if (Get.overlayContext != null) {
+      Get.rawSnackbar(
+        messageText: Text(
+          message,
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 14.5,
+            fontWeight: FontWeight.w600,
+          ),
+          textAlign: TextAlign.center,
+        ),
         backgroundColor: Colors.redAccent,
-        textColor: Colors.white,
-        fontSize: 16.0
-    );
+        borderRadius: 13,
+        margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        snackPosition: SnackPosition.BOTTOM,
+        duration: const Duration(seconds: 2),
+        animationDuration: const Duration(milliseconds: 250),
+        isDismissible: true,
+      );
+    }
   }
 
-  // 3. Standardized name and fixed typo for general success
+  // 3. In-app Success Toast (Never lingers outside the app & never stacks)
   static void showSuccessToast(String message) {
-    Fluttertoast.showToast(
-        msg: message,
-        toastLength: Toast.LENGTH_LONG,
-        gravity: ToastGravity.TOP,
-        timeInSecForIosWeb: 1,
-        backgroundColor: Colors.green,
-        textColor: Colors.white,
-        fontSize: 16.0
-    );
+    _clearActiveNotifications();
+
+    if (Get.overlayContext != null) {
+      Get.rawSnackbar(
+        messageText: Text(
+          message,
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 14.5,
+            fontWeight: FontWeight.w600,
+          ),
+          textAlign: TextAlign.center,
+        ),
+        backgroundColor: Colors.green.shade600,
+        borderRadius: 13,
+        margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        snackPosition: SnackPosition.TOP,
+        duration: const Duration(seconds: 2),
+        animationDuration: const Duration(milliseconds: 250),
+        isDismissible: true,
+      );
+    }
   }
 
-  // 4. WhatsApp-style custom toast (Replaced ShowSnackbar)
-  static void showInAppToast(String title, String message, {VoidCallback? onTap}) {
+  // 4. WhatsApp-style custom toast (Prevents stacking when toggling settings repeatedly)
+  static void showInAppToast(
+    String title,
+    String message, {
+    VoidCallback? onTap,
+  }) {
+    _clearActiveNotifications();
+
     Get.snackbar(
       title,
       message,
       onTap: (snack) {
         if (onTap != null) onTap();
       },
-      duration: const Duration(seconds: 3),
+      duration: const Duration(seconds: 2),
+      animationDuration: const Duration(milliseconds: 250),
       snackPosition: SnackPosition.TOP,
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
       backgroundColor: Colors.white,
       colorText: Colors.black87,
       borderRadius: 16,
-
       icon: Container(
         margin: const EdgeInsets.only(left: 8),
         child: CircleAvatar(
@@ -70,7 +113,11 @@ class Utils {
       dismissDirection: DismissDirection.horizontal,
       titleText: Text(
         title,
-        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Colors.black87),
+        style: const TextStyle(
+          fontWeight: FontWeight.bold,
+          fontSize: 14,
+          color: Colors.black87,
+        ),
       ),
       messageText: Text(
         message,
@@ -80,7 +127,7 @@ class Utils {
     );
   }
 
-  // 5. Made Dialog generic (Removed hardcoded "Log out" text)
+  // 5. Generic Action Dialog
   static void showActionDialog({
     required String title,
     required String content,
@@ -90,16 +137,17 @@ class Utils {
   }) {
     Get.defaultDialog(
       title: title,
-      titleStyle: const TextStyle(color: Colors.black87, fontWeight: FontWeight.bold),
+      titleStyle: const TextStyle(
+        color: Colors.black87,
+        fontWeight: FontWeight.bold,
+      ),
       titlePadding: const EdgeInsets.only(top: 20, bottom: 8),
       contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
-
       content: Text(
         content,
         textAlign: TextAlign.center,
         style: const TextStyle(color: Colors.black54),
       ),
-
       confirm: ElevatedButton(
         style: ElevatedButton.styleFrom(
           backgroundColor: const Color(0xFF2B7FFF),
@@ -107,17 +155,18 @@ class Utils {
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         ),
         onPressed: () {
-          Get.back(); // Close dialog automatically
-          onConfirm(); // Execute action
+          Get.back();
+          onConfirm();
         },
         child: Text(confirmText, style: const TextStyle(color: Colors.white)),
       ),
-
       cancel: TextButton(
         onPressed: () => Get.back(),
-        child: Text(cancelText, style: const TextStyle(color: Colors.redAccent)),
+        child: Text(
+          cancelText,
+          style: const TextStyle(color: Colors.redAccent),
+        ),
       ),
-
       backgroundColor: Colors.white,
       radius: 12,
     );

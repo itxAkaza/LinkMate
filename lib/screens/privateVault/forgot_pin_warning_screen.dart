@@ -30,13 +30,39 @@ class ForgotPinWarningScreen extends StatelessWidget {
     }
 
     await repo.deleteAllPrivateLinks();
-    Utils.showInAppToast("Vault Reset", "All private links have been permanently deleted.");
 
-    // Move to Set New 4-Digit PIN Screen
-    Get.off(() => VaultPinScreen(
-      mode: PinScreenMode.setup,
-      openVaultOnSuccess: openVaultAfterReset,
-    ));
+    if (Get.isSnackbarOpen) {
+      Get.closeAllSnackbars();
+    }
+
+    if (openVaultAfterReset) {
+      // Replace warning screen with Setup screen (which will then open PrivateVaultScreen)
+      Get.off(() => const VaultPinScreen(
+        mode: PinScreenMode.setup,
+        openVaultOnSuccess: true,
+      ));
+      Future.delayed(const Duration(milliseconds: 100), () {
+        Utils.showInAppToast("Vault Reset", "All private links have been permanently deleted.");
+      });
+    } else {
+      // Show reset toast and wait for user to finish creating their new PIN
+      Future.delayed(const Duration(milliseconds: 100), () {
+        Utils.showInAppToast("Vault Reset", "Create a new 4-digit PIN.");
+      });
+
+      final bool? result = await Get.to<bool>(
+            () => const VaultPinScreen(
+          mode: PinScreenMode.setup,
+          openVaultOnSuccess: false,
+        ),
+      );
+
+      // Immediately close ForgotPinWarningScreen and return to Settings / caller!
+      if (Get.isSnackbarOpen) {
+        Get.closeAllSnackbars();
+      }
+      Get.back(result: result ?? false);
+    }
   }
 
   @override
@@ -49,7 +75,10 @@ class ForgotPinWarningScreen extends StatelessWidget {
         elevation: 0,
         leading: IconButton(
           icon: const Icon(LucideIcons.arrowLeft, color: AppColors.textColorBlack),
-          onPressed: () => Get.back(),
+          onPressed: () {
+            if (Get.isSnackbarOpen) Get.closeAllSnackbars();
+            Get.back(result: false);
+          },
         ),
         title: Text(
           "Reset Vault PIN",
@@ -170,7 +199,10 @@ class ForgotPinWarningScreen extends StatelessWidget {
                     side: const BorderSide(color: Colors.black12),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                   ),
-                  onPressed: () => Get.back(),
+                  onPressed: () {
+                    if (Get.isSnackbarOpen) Get.closeAllSnackbars();
+                    Get.back(result: false);
+                  },
                   child: Text(
                     "Cancel",
                     style: GoogleFonts.manrope(

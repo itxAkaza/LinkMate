@@ -21,8 +21,8 @@ class HomeController extends GetxController {
   final RxString searchQuery = ''.obs;
   final RxString selectedTag = 'All Links'.obs;
   final RxBool isGridView = false.obs;
+  final RxInt refreshTrigger = 0.obs; // Forces Obx to rebuild when Hive updates
 
-  // Important Tags filter list matching AddLinkScreen
   final List<String> filterTags = [
     'All Links',
     'Study',
@@ -49,25 +49,40 @@ class HomeController extends GetxController {
       searchQuery.value = searchController.text.trim();
     });
 
+    // Automatically trigger reactive update whenever the Hive box changes
+    listenableBox.addListener(_onBoxChanged);
+  }
+
+  void _onBoxChanged() {
+    refreshTrigger.value++;
+  }
+
+  /// Pull-to-refresh action
+  Future<void> refreshLinks() async {
+    AppHaptics.lightTap();
+    await Future.delayed(const Duration(milliseconds: 350));
+    refreshTrigger.value++;
   }
 
   void selectTag(String tag) {
     AppHaptics.lightTap();
     selectedTag.value = tag;
   }
+
   void toggleViewMode() {
     AppHaptics.lightTap();
     isGridView.value = !isGridView.value;
-    // Save persistent grid state for Home page
     repository.saveGridViewState('home', isGridView.value);
   }
 
   /// Filters links from Hive Box based on Search Query & Selected Tag
   List<LinkItem> getFilteredLinks(Box<LinkItem> box) {
+    // Touch refreshTrigger so Obx knows to rebuild when triggered
+    final _ = refreshTrigger.value;
+
     final query = searchQuery.value.toLowerCase();
     final activeTag = selectedTag.value;
 
-    // Reverse so newest links appear at the top
     final allPublicLinks = box.values
         .where((link) => !link.isPrivate)
         .toList()
@@ -75,32 +90,29 @@ class HomeController extends GetxController {
         .toList();
 
     return allPublicLinks.where((link) {
-      // 1. Tag Filter (Checks both link.tags and link.category for convenience)
       final matchesTag = activeTag == 'All Links' ||
           link.tags.any((t) => t.toLowerCase() == activeTag.toLowerCase()) ||
-          link.category!.toLowerCase() == activeTag.toLowerCase();
+          (link.category ?? '').toLowerCase() == activeTag.toLowerCase();
 
       if (!matchesTag) return false;
 
-      // 2. Search Filter
       if (query.isEmpty) return true;
 
       final inUrl = link.url.toLowerCase().contains(query);
       final inDesc = (link.description ?? '').toLowerCase().contains(query);
       final inMetaTitle = (link.metaTitle ?? '').toLowerCase().contains(query);
       final inMetaDesc = (link.metaDescription ?? '').toLowerCase().contains(query);
-      final inCategory = link.category!.toLowerCase().contains(query);
+      final inCategory = (link.category ?? '').toLowerCase().contains(query);
       final inTags = link.tags.any((t) => t.toLowerCase().contains(query));
 
       return inUrl || inDesc || inMetaTitle || inMetaDesc || inCategory || inTags;
     }).toList();
   }
 
-  // --- Card & BottomSheet Actions ---
-
   Future<void> toggleFavourite(LinkItem link) async {
     AppHaptics.lightTap();
     await repository.toggleFavourite(link);
+    refreshTrigger.value++;
   }
 
   Future<void> copyLink(String url) async {
@@ -120,18 +132,18 @@ class HomeController extends GetxController {
   Future<void> deleteLink(LinkItem link) async {
     AppHaptics.mediumTap();
     await repository.deleteLinkObject(link);
+    refreshTrigger.value++;
     Utils.showSuccessToast("Link deleted from LinkVault");
   }
 
-  /// Top AppBar QR Scanner -> Scans QR and opens AddLinkScreen pre-filled
   Future<void> openTopScanner() async {
     final result = await Get.to(() => const ScanLinkScreen());
     if (result != null && result is String) {
-      Get.to(() => AddLinkScreen(initialSharedUrl: result));
+      await Get.to(() => AddLinkScreen(initialSharedUrl: result));
+      refreshTrigger.value++;
     }
   }
 
-  /// Placeholder for Export CSV button
   void onExportPressed() {
     AppHaptics.lightTap();
     Get.to(() => const ImportExportScreen());
@@ -139,6 +151,7 @@ class HomeController extends GetxController {
 
   @override
   void onClose() {
+    listenableBox.removeListener(_onBoxChanged);
     searchController.dispose();
     super.onClose();
   }

@@ -1,8 +1,11 @@
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:timezone/timezone.dart' as tz;
-import 'package:timezone/data/latest.dart' as tz;
-import 'package:flutter_timezone/flutter_timezone.dart';
 import 'dart:io';
+import 'dart:ui';
+
+import 'package:flutter/foundation.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:flutter_timezone/flutter_timezone.dart';
+import 'package:timezone/data/latest.dart' as tz;
+import 'package:timezone/timezone.dart' as tz;
 
 class NotificationServices {
   final notificationPlugin = FlutterLocalNotificationsPlugin();
@@ -16,10 +19,14 @@ class NotificationServices {
     if (!isEnabled) return; // Do not boot up if user disabled them in settings
 
     tz.initializeTimeZones();
-    final String currentTimeZone = await FlutterTimezone.getLocalTimezone();
-    tz.setLocalLocation(tz.getLocation(currentTimeZone));
+    try {
+      final String currentTimeZone = await FlutterTimezone.getLocalTimezone();
+      tz.setLocalLocation(tz.getLocation(currentTimeZone));
+    } catch (e) {
+      debugPrint("Timezone initialization fallback: $e");
+    }
 
-    const initSettingAndroid = AndroidInitializationSettings("@mipmap/ic_launcher");
+    const initSettingAndroid = AndroidInitializationSettings('@drawable/ic_stat_linkmate');
     const initSettingIOS = DarwinInitializationSettings(
       requestAlertPermission: true,
       requestSoundPermission: true,
@@ -31,22 +38,23 @@ class NotificationServices {
       iOS: initSettingIOS,
     );
 
-    await notificationPlugin.initialize(
-      settings: initSetting,
-      // Optional: Add onDidReceiveNotificationResponse here later to handle clicks
-    );
-    _isInitialized = true;
+    try {
+      await notificationPlugin.initialize(
+        settings: initSetting,
+      );
+      _isInitialized = true;
+    } catch (e) {
+      debugPrint("Notification plugin init error: $e");
+    }
   }
 
   // --- Toggle Handling ---
   /// Call this when the user flips the "Enable Notifications" toggle in Settings
   Future<void> handleSettingsToggle(bool isEnabled) async {
     if (!isEnabled) {
-      // If user turns off notifications, wipe all pending scheduled reminders
       await cancelAllNotifications();
       _isInitialized = false;
     } else {
-      // If user turns them on, initialize the service
       await initNotification(true);
     }
   }
@@ -91,12 +99,15 @@ class NotificationServices {
   NotificationDetails _scheduleNotificationDetails() {
     return const NotificationDetails(
       android: AndroidNotificationDetails(
-        "linkvault_reminders_channel", // Updated for LinkVault
-        "Link Reminders",              // Updated for LinkVault
+        "linkmate_reminders_channel_v2",
+        "LinkMate Reminders",
         channelDescription: "Reminders to revisit saved links and videos",
         importance: Importance.max,
         priority: Priority.high,
         playSound: true,
+        icon: '@drawable/ic_stat_linkmate',
+        largeIcon: DrawableResourceAndroidBitmap('@mipmap/ic_launcher'),
+        color: Color(0xFF2B7FFF),
       ),
       iOS: DarwinNotificationDetails(),
     );
@@ -108,7 +119,9 @@ class NotificationServices {
     required String body,
     required DateTime scheduledDate,
   }) async {
-    if (!_isInitialized) return;
+    if (!_isInitialized) {
+      await initNotification(true);
+    }
 
     final tz.TZDateTime scheduleTime = tz.TZDateTime.from(scheduledDate, tz.local);
 
@@ -127,16 +140,20 @@ class NotificationServices {
         androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
       );
     } catch (e) {
-      // 2. Android 14+ Fallback: If exact alarms are denied by the user,
-      // fallback to inexact scheduling to prevent the app from crashing.
-      await notificationPlugin.zonedSchedule(
-        id: id,
-        title: title,
-        body: body,
-        scheduledDate: scheduleTime,
-        notificationDetails: _scheduleNotificationDetails(),
-        androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
-      );
+      debugPrint("Exact alarm schedule failed ($e), trying inexact fallback...");
+      try {
+        // 2. Android 14+ Fallback: Inexact scheduling wrapped safely
+        await notificationPlugin.zonedSchedule(
+          id: id,
+          title: title,
+          body: body,
+          scheduledDate: scheduleTime,
+          notificationDetails: _scheduleNotificationDetails(),
+          androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+        );
+      } catch (fallbackError) {
+        debugPrint("Inexact notification schedule also failed: $fallbackError");
+      }
     }
   }
 }
