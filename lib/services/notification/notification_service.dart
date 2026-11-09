@@ -106,12 +106,13 @@ class NotificationServices {
         priority: Priority.high,
         playSound: true,
         icon: '@drawable/ic_stat_linkmate',
-        largeIcon: DrawableResourceAndroidBitmap('@mipmap/ic_launcher'),
         color: Color(0xFF2B7FFF),
       ),
       iOS: DarwinNotificationDetails(),
     );
   }
+
+
 
   Future<void> showScheduleNotification({
     required int id,
@@ -123,11 +124,16 @@ class NotificationServices {
       await initNotification(true);
     }
 
-    final tz.TZDateTime scheduleTime = tz.TZDateTime.from(scheduledDate, tz.local);
+    final DateTime now = DateTime.now();
+    Duration diff = scheduledDate.difference(now);
 
-    if (scheduleTime.isBefore(tz.TZDateTime.now(tz.local))) {
-      return;
+    // If MetadataFetch took a few seconds and pushed the selected minute slightly into the past,
+    // fire it 5 seconds from now instead of silently dropping it!
+    if (diff.inSeconds <= 0) {
+      diff = const Duration(seconds: 5);
     }
+
+    final tz.TZDateTime scheduleTime = tz.TZDateTime.now(tz.local).add(diff);
 
     try {
       // 1. Try to schedule with exact precision
